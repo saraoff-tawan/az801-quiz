@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Simulator - Case Studies</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; color: #333; max-width: 850px; margin: 0 auto; padding: 20px; line-height: 1.6;}
+        .card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .status-bar { display: flex; justify-content: space-between; margin-bottom: 20px; color: #222; font-weight: bold; font-size: 1.2em; border-bottom: 2px solid #e0e0e0; padding-bottom: 15px;}
+        .question-badge { background-color: #0078d4; color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.9em; font-weight: bold; display: inline-block; margin-bottom: 15px;}
+        .question { font-size: 1.1em; margin-bottom: 20px;}
+        
+        /* แผงปุ่มกดข้ามข้อ (Navigation Grid) */
+        .nav-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 25px; padding: 10px; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 8px; justify-content: center; }
+        .nav-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border: 1px solid #ccc; background: white; border-radius: 5px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 0.95em;}
+        .nav-btn:hover { background: #f0f0f0; border-color: #0078d4; }
+        .nav-btn.active { background: #0078d4; color: white; border-color: #0078d4; box-shadow: 0 2px 5px rgba(0,120,212,0.4); }
+        .nav-btn.answered-correct { background: #d4edda; color: #155724; border-color: #c3e6cb; }
+        .nav-btn.answered-wrong { background: #f8d7da; color: #721c24; border-color: #f5c6cb; }
+
+        /* สไตล์ตารางโจทย์ทั่วไป */
+        .info-table { width: auto; min-width: 50%; max-width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 0.95em; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .info-table th, .info-table td { border: 1px solid #aaa; padding: 8px; }
+        .info-table th { background: #e9ecef; text-align: left; }
+
+        /* ตัวเลือก MCQ (Radio และ Checkbox) */
+        .options label { display: block; padding: 15px; margin: 10px 0; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; cursor: pointer; transition: 0.2s;}
+        .options label:hover { background: #e2e6ea; }
+        input[type="radio"], input[type="checkbox"] { transform: scale(1.2); cursor: pointer; margin-right: 8px;}
+        
+        /* สไตล์ Drag & Drop */
+        .dd-wrapper { display: flex; gap: 20px; margin-top: 15px; align-items: flex-start; }
+        .dd-box { flex: 1; padding: 15px; border: 2px dashed #bbb; border-radius: 8px; background: #fafafa; min-height: 200px; }
+        .dd-box h4 { margin-top: 0; color: #555; text-align: center; margin-bottom: 15px;}
+        .draggable { background: #0078d4; color: white; padding: 12px; margin-bottom: 10px; border-radius: 5px; cursor: grab; text-align: left; font-weight: 500; font-size: 0.9em; box-shadow: 0 2px 4px rgba(0,0,0,0.1);}
+        .draggable:active { cursor: grabbing; }
+        
+        /* กล่องเป้าหมายสำหรับลากวาง */
+        .target-container { flex: 1; display: flex; flex-direction: column; gap: 15px; }
+        .target-area { padding: 15px; border: 2px dashed #bbb; border-radius: 8px; background: #f0f8ff; min-height: 100px; }
+        .target-label { font-weight: bold; margin-bottom: 10px; color: #333; text-align: center; border-bottom: 1px solid #ccc; padding-bottom: 10px;}
+
+        /* สไตล์ Hotspot (ตาราง Yes/No) */
+        .hotspot-table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; }
+        .hotspot-table th, .hotspot-table td { border: 1px solid #ccc; padding: 12px; }
+        .hotspot-table th { background: #0078d4; color: white; text-align: center; font-weight: bold; }
+        .hotspot-table td:first-child { width: 70%; font-weight: 500; }
+        .hotspot-table td:not(:first-child) { text-align: center; width: 15%; background: #f8f9fa; cursor: pointer;}
+
+        /* สไตล์ Dropdown */
+        .dd-area { background: #f8f9fa; border: 1px solid #dee2e6; padding: 15px; border-radius: 5px; margin-top: 15px; text-align: left; display: block; width: auto; overflow-x: auto}
+        .dd-row { margin-bottom: 10px; display: flex; align-items: center; flex-wrap: nowrap;}
+        .dd-label { width: 200px; text-align: right; margin-right: 15px; font-weight: bold; }
+        .dd-select { padding: 5px; font-size: 1em; width: auto; max-width: 170px; border: 1px solid #ccc; border-radius: 4px; }
+
+        /* ปุ่มและเฉลย */
+        .button-group { display: flex; justify-content: space-between; margin-top: 25px; }
+        .btn { background: #0078d4; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;}
+        .btn:hover { background: #005a9e; }
+        .btn-secondary { background: #6c757d; }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        .explanation { margin-top: 25px; padding: 20px; border-radius: 5px; display: none; }
+        .correct-box { background: #d4edda; border-left: 5px solid #28a745; color: #155724; }
+        .incorrect-box { background: #f8d7da; border-left: 5px solid #dc3545; color: #721c24; }
+    
+        /* Mobile Responsive */
+        @media screen and (max-width:768px){
+            body { max-width:100%; padding:8px; box-sizing:border-box; }
+            .card { padding:15px; }
+            .status-bar { flex-direction:column; gap:10px; align-items:flex-start; }
+            .question { overflow-wrap:break-word; }
+            .nav-grid { display:flex !important; flex-wrap:wrap !important; gap:8px !important; justify-content:flex-start !important; overflow:visible !important; }
+            .nav-btn { width:40px !important; height:40px !important; min-width:40px !important; font-size:.95rem !important; }
+            img { max-width:100% !important; height:auto !important; }
+            table { display:block; overflow-x:auto; max-width:100%; }
+            .dd-wrapper { flex-direction:column !important; }
+            .target-container, .dd-box, .target-area { width:100%; }
+            .dd-row { flex-direction:column; align-items:flex-start; }
+            .dd-label { width:auto !important; text-align:left; margin-bottom:5px; }
+            .dd-select { width:100% !important; max-width:170px !important; font-size:14px !important; }
+            .hotspot-table td:first-child { width:auto; }
+            .button-group { flex-direction:column; gap:10px; }
+            .btn { width:100%; }
+            
+            /* ปรับความสูงของกล่อง Case Study บนมือถือให้เลื่อนง่ายขึ้น */
+            .case-study-box { height: 250px !important; } 
+        }
+
+        .case-study-box { background-color: #fffbdd; padding: 15px; border: 1px solid #e0d383; border-radius: 5px; height: 300px; overflow-y: auto; margin-bottom: 15px; font-size: 0.9em; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
+        .case-study-contoso { background-color: #e6f7ff; border: 1px solid #91d5ff; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <div id="navigation-grid" class="nav-grid"></div>
+
+        <div class="status-bar">
+            <span id="question-counter">Question: 66</span>
+            <span id="score-counter">Score: 0</span>
+        </div>
+        
+        <div id="question-text" class="question">Loading...</div>
+        
+        <div id="options-container" class="options" style="display: none;"></div>
+        
+        <div id="dragdrop-container" class="dd-wrapper" style="display: none;">
+            <div class="dd-box" id="source-box" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <h4>Options</h4>
+            </div>
+            <div id="targets-wrapper" class="target-container"></div>
+        </div>
+
+        <div id="hotspot-container" style="display: none;"></div>
+        <div id="dropdown-container" style="display: none;"></div>
+        
+        <div class="button-group">
+            <button class="btn btn-secondary" id="prev-btn" onclick="prevQuestion()">&laquo; Back</button>
+            <div>
+                <button class="btn" id="submit-btn" onclick="checkAnswer()">Submit Answer</button>
+                <button class="btn" id="next-btn" onclick="nextQuestion()" style="display:none; background:#28a745;">Next Question &raquo;</button>
+            </div>
+        </div>
+        
+        <div id="explanation-box" class="explanation"></div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 📚 Case Study Context Variables (Full Content)
+        // ==========================================
+        const fabrikamContext = `
+        <div class="case-study-box">
+            <h3 style="margin-top: 0; color: #b8860b;">Case Study: Fabrikam, Inc.</h3>
+            <b>Overview</b><br>
+            Fabrikam, Inc. is a manufacturing company that has a main office in Chicago and a branch office in Paris.<br><br>
+            
+            <b>Existing Environment - Identity Infrastructure</b><br>
+            Fabrikam has an Active Directory Domain Services (AD DS) forest that syncs with an Azure Active Directory (Azure AD) tenant. The AD DS forest contains two domains named corp.fabrikam.com and europe.fabrikam.com.<br><br>
+
+            <b>Chicago Office On-Premises Servers</b><br>
+            The office in Chicago contains on-premises servers that run Windows Server 2016 as show in the following table.<br>
+         
+            <table class='info-table'>
+                <tr><th>Name</th><th>Type</th><th>Configuration</th></tr>
+                <tr><td>HV1</td><td>Physical</td><td>Hyper-V host</td></tr>
+                <tr><td>HV2</td><td>Physical</td><td>Hyper-V host</td></tr>
+                <tr><td>APP1</td><td>Virtual machine</td><td>Aplication server</td></tr>
+                <tr><td>APP2</td><td>Virtual machine</td><td>Aplication server</td></tr>
+                <tr><td>APP3</td><td>Virtual machine</td><td>Aplication server</td></tr>
+                <tr><td>APP4</td><td>Virtual machine</td><td>Aplication server</td></tr>
+		<tr><td>DC1</td><td>Virtual machine</td><td>Domain controller</td></tr>
+                <tr><td>Archive1</td><td>Virtual machine</td><td>File server</td></tr>
+                <tr><td>DHCP1</td><td>Virtual machine</td><td>DHCP server</td></tr>
+                <tr><td>Fileserver1</td><td>Virtual machine</td><td>File server</td></tr>
+                <tr><td>WEB1</td><td>Virtual machine</td><td>Web server</td></tr>
+                <tr><td>WEB2</td><td>Virtual machine</td><td>Web server</td></tr>
+                <tr><td>AADC1</td><td>Virtual machine</td><td>Azure AD Connect</td></tr>
+            </table>
+	    All the servers in the Chicago office are in the corp.fabrikam.com domain.<br>
+            All virtual machines in the Chicago office are hosted on HV1 and HV2. HV1 and HV2 are nodes in a failover cluster named Cluster1.<br>
+            WEB1 and WEB2 run an IIS website accessible at https://www.fabrikam.com.<br>
+            All users in the Chicago office run a custom application that connects to a UNC path of \\\\Fileserver1\\Data.<br><br>
+
+            <b>Paris Office On-Premises Servers</b><br>
+            The office in Paris contains a physical server named dc2.europe.fabrikam.com that runs Windows Server 2016 and is a domain controller for the europe.fabrikam.com domain.<br><br>
+
+            <b>Network Infrastructure</b><br>
+            The networks in both the Chicago and Paris offices have local internet connections. The offices are connected by using VPN connections.<br>
+            The client computers in the Chicago office get IP addresses from DHCP1.<br><br>
+
+            <b>Security Risks</b><br>
+            • Some accounts connect to AD DS resources by using insecure protocols such as NTLMv1, SMB1, and unsigned LDAP.<br>
+            • Servers have Windows Defender Firewall enabled. Server administrators sometimes modify firewall rules and allow risky connections.<br><br>
+
+            <b>Requirements:</b><br><br>
+
+            <b>Security Requirements</b><br>
+            • Prevent server administrators from configuring Windows Defender Firewalls rules.<br>
+            • Encrypt all the data disks on the servers by using BitLocker Drive Encryption (BitLocker).<br>
+            • Ensure that only authorized applications can be installed or run on the servers in the forest.<br>
+            • Implement Microsoft Sentinel as a reporting solution to identify all connections to the domain controllers that use insecure protocols.<br><br>
+
+            <b>On-Premises Migration Plan</b><br>
+            • Move the APP1 and APP2 virtual machines in the Chicago office to a new Hyper-V failover cluster named Cluster2 that will run Windows Server 2022.<br>
+              &nbsp;&nbsp;&nbsp;- Cluster2 will contain two new nodes named HV3 and HV4.<br>
+              &nbsp;&nbsp;&nbsp;- All virtual machine files will be stored on a Cluster Shared Volume (CSV).<br>
+            • Migrate Archive1 to a new failover cluster named Cluster3 that will run Windows Server 2022.<br>
+              &nbsp;&nbsp;&nbsp;- Cluster3 will contain two physical nodes named Node1 and Node2.<br>
+              &nbsp;&nbsp;&nbsp;- The file shares on Cluster3 will be a failover cluster role in active-passive mode.<br>
+            • Migrate all users, groups, and client computers from europe.fabrikam.com to corp.fabrikam.com.<br>
+              &nbsp;&nbsp;&nbsp;- The migration will be performed by using the Active Directory Migration Tool (ADMT).<br>
+              &nbsp;&nbsp;&nbsp;- A computer named ADMTcomputer will be deployed to the corp.fabrikam.com domain to run ADMT migration procedures.<br>
+              &nbsp;&nbsp;&nbsp;- User accounts will retain their existing password.<br>
+            • Migrate the data share from Fileserver1 to a new server named Fileserver2 that will run Windows Server 2022. After the migration, the data share must be accessible by using the existing UNC path.<br><br>
+
+            <b>Azure Migration Plan</b><br>
+            • Create an Azure subscription named Sub1. Create an Azure virtual network named Vnet1.<br>
+            • Use ExpressRoute to connect the Paris and Chicago offices to Vnet1.<br>
+            • License all servers for Microsoft Defender for servers.<br>
+            • Migrate APP3 and APP4 to Azure.<br>
+            • Migrate the www.fabrikam.com website to an Azure App Service web app named WebApp1.<br>
+            • Decommission WEB1 and WEB2.<br><br>
+
+            <b>DHCP Migration Plan</b><br>
+            • Ensure that DHCP2 provides the same IP addresses that are currently available from DHCP1.<br>
+            • Prevent DHCP1 from servicing clients once services are enabled on DHCP2.<br>
+            • Ensure that the existing leases and reservations are migrated.
+        </div>`;
+
+        const contosoContext = `
+        <div class="case-study-box case-study-contoso">
+            <h3 style="margin-top: 0; color: #005a9e;">Case Study: Contoso, Ltd.</h3>
+            <b>Overview</b><br>
+            Contoso, Ltd. is a manufacturing company that has a main office in Seattle and branch offices in Los Angeles and Montreal.<br><br>
+
+            <b>Active Directory Environment</b><br>
+            Contoso has an on-premises AD DS domain named contoso.com that syncs with an Azure AD tenant. The forest functional level is Windows Server 2012 R2. The domain functional level is Windows Server 2012. Active Directory Recycle Bin is enabled.<br><br>
+            
+            <b>Domain Controllers</b>
+            <table class='info-table'>
+                <tr><th>Name</th><th>Operating system</th><th>FSMO role</th></tr>
+                <tr><td>DC1</td><td>Windows Server 2012 R2</td><td>RID master, Schema master</td></tr>
+                <tr><td>DC2</td><td>Windows Server 2016</td><td>PDC emulator, Infrastructure master</td></tr>
+                <tr><td>DC3</td><td>Windows Server 2016</td><td>Domain naming master</td></tr>
+            </table>
+
+            <b>Users and Groups</b>
+            <table class='info-table'>
+                <tr><th>Name</th><th>Container</th><th>Group membership</th></tr>
+                <tr><td>User1</td><td>OU1</td><td>Group2, Group4</td></tr>
+                <tr><td>User2</td><td>Users</td><td>Group2</td></tr>
+                <tr><td>User3</td><td>OU1</td><td>Group3, Group4</td></tr>
+                <tr><td>Admin1</td><td>OU1</td><td>Domain Admins</td></tr>
+            </table>
+
+            <b>Password Policies</b>
+            <table class='info-table'>
+                <tr><th>Name</th><th>Type</th><th>Precedence</th><th>Min Password Length</th><th>Applies to</th></tr>
+                <tr><td>Default Domain Policy</td><td>GPO</td><td>N/A</td><td>8</td><td>contoso.com</td></tr>
+                <tr><td>GPO1</td><td>GPO</td><td>N/A</td><td>10</td><td>OU1</td></tr>
+                <tr><td>PSO1</td><td>PSO</td><td>10</td><td>9</td><td>Group2</td></tr>
+                <tr><td>PSO2</td><td>PSO</td><td>20</td><td>11</td><td>Group4</td></tr>
+            </table>
+
+            <b>Server Infrastructure</b><br>
+            The network contains the servers shown in the following table. All the servers run Windows Server 2022.<br>
+            <table class='info-table'>
+                <tr><th>Name</th><th>Description</th></tr>
+                <tr><td>Server1</td><td>Contains a shared folder named Share1.</td></tr>
+                <tr><td>Server2</td><td>None.</td></tr>
+                <tr><td>Server3</td><td>None.</td></tr>
+                <tr><td>Server4</td><td>Has Remote Desktop enabled.</td></tr>
+            </table><br>
+
+            <b>Isolation Connection Security Rules</b>
+            <table class='info-table'>
+                <tr><th>Server</th><th>Inbound</th><th>Outbound</th></tr>
+                <tr><td>Server1</td><td>Request</td><td>Request</td></tr>
+                <tr><td>Server2</td><td>Require</td><td>Request</td></tr>
+                <tr><td>Server3</td><td>Require</td><td>Require</td></tr>
+                <tr><td>DC1, DC2, and DC3</td><td>Request</td><td>Request</td></tr>
+                <tr><td>Server4</td><td>(No rules configured)</td><td>(No rules configured)</td></tr>
+            </table><br>
+
+	       <b>Server4 Configurations</b><br>
+            User rights assignments on Server4:
+            <table class='info-table'>
+                <tr><th>User right</th><th>Users and groups</th></tr>
+                <tr><td>Allow log on through Remote Desktop Services</td><td>Group2, Administrators, Remote Desktop Users</td></tr>
+                <tr><td>Deny log on through Remote Desktop Services</td><td>Group3</td></tr>
+                <tr><td>Access this computer from the network</td><td>Group1, Administrators, Backup Operators, Everyone, Users</td></tr>
+                <tr><td>Deny access to this computer from the network</td><td>Group4</td></tr>
+            </table>
+            <br>Disks on Server4:<br>
+            <div style='margin: 10px 0;'>
+                <img src='images5/study1.jpg' style='width: 100%; max-width: 500px; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);'>
+            </div><br>
+            <b>Virtualization Infrastructure</b>
+            <table class='info-table'>
+                <tr><th>Name</th><th>Nodes</th><th>Virtual machines</th></tr>
+                <tr><td>Cluster1</td><td>6</td><td>18</td></tr>
+                <tr><td>Cluster2</td><td>4</td><td>12</td></tr>
+                <tr><td>Cluster3</td><td>2</td><td>6</td></tr>
+            </table><br>
+
+            <b>Technical Requirements</b><br>
+            • Promote a new server named DC4 that runs Windows Server 2022 to a domain controller.<br>
+            • Replicate the virtual machines from Cluster2 to an Azure Recovery Services vault.<br>
+            • Centrally manage performance alerts in Azure for all the domain controllers.<br>
+            • Ensure that User1 can recover objects from the Active Directory Recycle Bin.<br>
+            • Migrate Share1 to Server2. The migration must include all the share and folder permissions.<br>
+            • Back up Server4 and all data to an Azure Recovery Services vault.<br>
+            • Use Hyper-V Replica to protect the virtual machines in Cluster3.<br>
+            • Implement BitLocker Drive Encryption (BitLocker) on Server4.<br>
+            • Whenever possible, use the principle of least privilege.
+        </div>`;
+
+        // ==========================================
+        // 🚨 นำโจทย์ข้อสอบมาวางใน Array นี้
+        // ==========================================
+        const quizData = [
+            // ==========================================
+            // Question 66 (Topic 6 - Testlet 1: Fabrikam - Q1)
+            // ==========================================
+            {
+                topic: "Topic 6: Fabrikam",
+                type: "dragdrop",
+                question: fabrikamContext + 
+                          "<b>Question:</b><br>" +
+                          "You are planning the implementation of Cluster2 to support the on-premises migration plan.<br>" +
+                          "You need to ensure that the disks on Cluster2 meet the security requirements.<br><br>" +
+                          "In which order should you perform the actions? To answer, move all actions from the list of actions to the answer area and arrange them in the correct order.",
+                draggables: [
+                    "Add a disk resource to the cluster.",
+                    "Enable BitLocker on the volume.",
+                    "Update the BitLockerProtectorInfo property of the volume.",
+                    "Create a Cluster Shared Volume (CSV).",
+                    "Put the disk in maintenance mode."
+                ],
+                correctOrder: [
+                    "Add a disk resource to the cluster.",
+                    "Create a Cluster Shared Volume (CSV).",
+                    "Put the disk in maintenance mode.",
+                    "Enable BitLocker on the volume.",
+                    "Update the BitLockerProtectorInfo property of the volume."
+                ],
+                explanation: "✅ <b>Explanation:</b><br>" +
+                             "<b>💡 เทคนิคจำ Keyword:</b> 'BitLocker on CSV' ต้องจำลำดับ <b>Add -> CSV -> Maintenance -> BitLocker -> Update Info</b> เสมอครับ<br><br>" +
+                             "<b>1. Add a disk resource to the cluster:</b> นำดิสก์เข้าสู่ Cluster ให้ระบบรู้จักก่อน<br>" +
+                             "<b>2. Create a Cluster Shared Volume (CSV):</b> สั่งแปลงดิสก์นั้นให้เป็น Cluster Shared Volume (CSV)<br>" +
+                             "<b>3. Put the disk in maintenance mode:</b> 🚨 ก่อนเปิด BitLocker บน CSV ต้องจับดิสก์เข้า Maintenance mode เพื่อหยุดการรบกวนระบบไฟล์ชั่วคราว<br>" +
+                             "<b>4. Enable BitLocker on the volume:</b> เปิดใช้งานเข้ารหัส BitLocker<br>" +
+                             "<b>5. Update the BitLockerProtectorInfo...:</b> อัปเดตข้อมูล Protector กลับไปให้ Cluster รับรู้"
+            },
+            // ==========================================
+            // Question 67 (Topic 6 - Testlet 1: Fabrikam - Q2)
+            // ==========================================
+            {
+                topic: "Topic 6: Fabrikam",
+                type: "dropdown",
+                question: fabrikamContext +
+                          "<b>Question:</b><br>" +
+                          "You need to implement a security policy solution to authorize the applications. The solution must meet the security requirements.<br><br>" +
+                          "Which service should you use to enforce the security policy, and what should you use to manage the policy settings? To answer, select the appropriate options.",
+                dropdowns: [
+                    { 
+                        id: "q67-dd1", 
+                        label: "Enforce the security policy:", 
+                        options: ["Microsoft Defender Application Control", "Microsoft Defender Application Guard", "Microsoft Defender Credential Guard", "Microsoft Defender for Endpoint"], 
+                        correctAnswer: "Microsoft Defender Application Control" 
+                    },
+                    { 
+                        id: "q67-dd2", 
+                        label: "Manage the policy settings:", 
+                        options: ["Configuration profiles in Microsoft Intune", "Compliance policies in Microsoft Intune", "Group Policy Objects (GPOs)"], 
+                        correctAnswer: "Group Policy Objects (GPOs)" 
+                    }
+                ],
+                explanation: "✅ <b>Explanation:</b><br>" +
+                             "<b>💡 เทคนิคจำ Keyword:</b> 'authorize the applications' = <b>Application Control</b> เสมอครับ<br><br>" +
+                             "• <b>Enforce:</b> ใช้ <b>Microsoft Defender Application Control (WDAC)</b> เพื่อควบคุมว่าแอปไหนรันได้หรือไม่ได้ตาม Requirement<br>" +
+                             "• <b>Manage:</b> เนื่องจาก Fabrikam ใช้ AD DS เป็นหลัก (On-premises) เครื่องมือที่ใช้จัดการ Policy ในระบบนี้คือ <b>Group Policy Objects (GPOs)</b> ครับ"
+            },
+            // ==========================================
+            // Question 68 (Topic 6 - Testlet 1: Fabrikam - Q3)
+            // ==========================================
+            {
+                topic: "Topic 6: Fabrikam",
+                type: "mcq",
+                question: fabrikamContext +
+                          "<b>Question:</b><br>" +
+                          "You are remediating the firewall security risks to meet the security requirements.<br>" +
+                          "What should you configure to reduce the risks?",
+                options: [
+                    "A. a Group Policy Object (GPO)",
+                    "B. adaptive network hardening in Microsoft Defender for Cloud",
+                    "C. a network security group (NSG) in Sub1",
+                    "D. an Azure Firewall policy"
+                ],
+                correctAnswerIndex: 0, // A
+                explanation: "✅ <b>Explanation:</b><br><b>A. a Group Policy Object (GPO)</b> is correct.<br><br>" +
+                             "<b>💡 เทคนิคจำ Keyword:</b> 'Prevent server administrators from configuring Windows Defender Firewalls' (ห้ามแอดมินตั้งค่า Firewall เอง)<br><br>" +
+                             "<b>เหตุผล:</b> ปัญหาคือแอดมินในองค์กรชอบแอบเปลี่ยนกฎ Firewall เอง วิธีจัดการเครื่อง On-premises จำนวนมากและบังคับไม่ให้คนอื่นแก้ได้ คือการดัน Policy จากส่วนกลางผ่าน <b>GPO</b> ครับ"
+            },
+            // ==========================================
+            // Question 69 (Topic 6 - Testlet 1: Fabrikam - Q4)
+            // ==========================================
+            {
+                topic: "Topic 6: Fabrikam",
+                type: "mcq",
+                question: fabrikamContext +
+                          "<b>Question:</b><br>" +
+                          "You are planning the deployment of Microsoft Sentinel.<br>" +
+                          "Which type of Microsoft Sentinel data connector should you use to meet the security requirements?",
+                options: [
+                    "A. Threat Intelligence - TAXII",
+                    "B. Azure Active Directory",
+                    "C. Microsoft Defender for Cloud",
+                    "D. Microsoft Defender for Identity"
+                ],
+                correctAnswerIndex: 3, // D
+                explanation: "✅ <b>Explanation:</b><br><b>D. Microsoft Defender for Identity</b> is correct.<br><br>" +
+                             "<b>💡 เทคนิคจำ Keyword:</b> 'identify all connections to the domain controllers that use insecure protocols' (ตรวจจับการใช้โปรโตคอลที่ไม่ปลอดภัยวิ่งเข้า DC)<br><br>" +
+                             "<b>เหตุผล:</b> ข้อมูลที่วิ่งเข้า Domain Controller (เช่น NTLMv1, SMB1) จะถูกดักจับและวิเคราะห์ได้ดีที่สุดโดยเซนเซอร์ของ <b>Microsoft Defender for Identity</b> ครับ"
+            },
+            // ==========================================
+            // Question 74 (Topic 8 - Testlet 3: Fabrikam - Q1)
+            // ==========================================
+            {
+                topic: "Topic 6: Fabrikam",
+                type: "mcq",
+                question: fabrikamContext +
+                          "<b>Question:</b><br>" +
+                          "You are planning the migration of Archive1 to support the on-premises migration plan.<br>" +
+                          "What is the minimum number of IP addresses required for the node and cluster roles on Cluster3?",
+                options: [
+                    "A. 2",
+                    "B. 3",
+                    "C. 4",
+                    "D. 5"
+                ],
+                correctAnswerIndex: 2, // C
+                explanation: "✅ <b>Explanation:</b><br><b>C. 4</b> is correct.<br><br>" +
+                             "<b>💡 เทคนิคจำ Keyword:</b> 'Migrate Archive1 to Cluster3 (2 nodes)' นับจำนวน IP<br><br>" +
+                             "<b>เหตุผล:</b> Failover Cluster แบบ Active-Passive ต้องการ IP ขั้นต่ำดังนี้:<br>" +
+                             "1. IP สำหรับ Node1<br>" +
+                             "2. IP สำหรับ Node2<br>" +
+                             "3. IP สำหรับ Cluster Name Object (CNO)<br>" +
+                             "4. IP สำหรับ Cluster Role (Archive1)<br>" +
+                             "รวมเป็น <b>4 IPs</b> ครับ"
+            },
+            // ==========================================
+            // Question 80 (Topic 6: Fabrikam - Q6: WebApp1 Migration)
+            // ==========================================
+            {
+                topic: "Topic 6: Fabrikam",
+                type: "dropdown",
+                question: fabrikamContext +
+                          "<b>Question:</b><br>" +
+                          "You are planning the www.fabrikam.com website migration to support the Azure migration plan.<br>" +
+                          "How should you configure WebApp1? To answer, select the appropriate options in the answer area.",
+                dropdowns: [
+                    { 
+                        id: "q80-dd1", 
+                        label: "To enable WebApp1 to handle requests for the website:", 
+                        options: ["Add a custom domain name.", "Configure an App Service domain.", "Enable App Service Managed Certificate."], 
+                        correctAnswer: "Add a custom domain name." 
+                    },
+                    { 
+                        id: "q80-dd2", 
+                        label: "To point client connections to WebApp1:", 
+                        options: ["Add a TXT record.", "Modify a DNS record.", "Create an alias record."], 
+                        correctAnswer: "Modify a DNS record." 
+                    }
+                ],
+                explanation: "✅ <b>Explanation:</b><br>" +
+                             "<b>💡 เทคนิคจำ Keyword:</b> การย้าย Domain มาลง Azure App Service ต้อง <b>Add custom domain -> Modify DNS record</b> เสมอ<br><br>" +
+                             "• <b>To enable WebApp1 to handle requests:</b> ขั้นแรกเราต้องไปตั้งค่าในตัว WebApp1 บน Azure โดยเลือก <b>Add a custom domain name</b> เพื่อให้ Web Server รู้จักชื่อ <code>www.fabrikam.com</code> เสียก่อน ไม่งั้นมันจะไม่ยอมรับ Request ที่วิ่งเข้ามาชื่อนี้ครับ<br>" +
+                             "• <b>To point client connections:</b> เมื่อแอปพร้อมแล้ว เราก็ไป <b>Modify a DNS record</b> ใน DNS Server ปัจจุบันของบริษัทเรา (โดยการสร้าง/แก้ CNAME หรือ A record) เพื่อเบนเข็มทราฟฟิกชี้ไปยัง Azure ครับ"
+            },
+	        // ==========================================
+            // Question 81 (Topic 6: Fabrikam - Q7: DHCP Migration)
+            // ==========================================
+            {
+                topic: "Topic 6: Fabrikam",
+                type: "dragdrop",
+                question: fabrikamContext +
+                          "<b>Question:</b><br>" +
+                          "You are planning the DHCP1 migration to support the DHCP migration plan.<br>" +
+                          "Which two PowerShell cmdlets should you run on DHCP1, and which two PowerShell cmdlets should you run on DHCP2? To answer, drag the appropriate cmdlets to the correct servers. Each cmdlet may be used once, more than once, or not at all.",
+                draggables: [
+                    "Add-DhcpServerInDC",
+                    "Add-DhcpServerv4Scope",
+                    "Export-DhcpServer",
+                    "Import-DhcpServer",
+                    "Remove-DhcpServerInDC",
+                    "Remove-DhcpServerv4Scope"
+                ],
+                targets: [
+                    { 
+                        label: "DHCP1:", 
+                        expected: ["Export-DhcpServer", "Remove-DhcpServerInDC"] 
+                    },
+                    { 
+                        label: "DHCP2:", 
+                        expected: ["Add-DhcpServerInDC", "Import-DhcpServer"] 
+                    }
+                ],
+                explanation: "✅ <b>Explanation:</b><br>" +
+                             "<b>💡 เทคนิคจำ Keyword:</b> ย้าย DHCP = <b>Export/Import</b> | ปิดตัวเก่า/เปิดตัวใหม่ใน AD = <b>Remove/Add InDC</b><br><br>" +
+                             "<b>บน DHCP1 (เครื่องเก่า):</b><br>" +
+                             "1. <b>Export-DhcpServer:</b> สำรองข้อมูล Scope, IP Leases และ Reservations ออกมาก่อน<br>" +
+                             "2. <b>Remove-DhcpServerInDC:</b> ถอดสิทธิ์ (Unauthorize) จาก Active Directory เพื่อป้องกันไม่ให้ DHCP1 แจก IP แข่งกับเครื่องใหม่ตามโจทย์สั่ง (Prevent DHCP1 from servicing clients)<br><br>" +
+                             "<b>บน DHCP2 (เครื่องใหม่):</b><br>" +
+                             "1. <b>Import-DhcpServer:</b> นำเข้าข้อมูลการตั้งค่าที่ Export มาลงเครื่องใหม่<br>" +
+                             "2. <b>Add-DhcpServerInDC:</b> ให้สิทธิ์ (Authorize) เครื่องใหม่ใน Active Directory เพื่อให้เครื่องสามารถเริ่มแจก IP ให้ลูกข่ายได้อย่างเป็นทางการครับ"
+            },
+	       // ==========================================
+            // Question 82 (Topic 6: Fabrikam - Q9: Data Share Migration)
+            // ==========================================
+            {
+                topic: "Topic 6: Fabrikam",
+                type: "mcq",
+                question: fabrikamContext +
+                          "<b>Question:</b><br>" +
+                          "You are planning the data share migration to support the on-premises migration plan.<br>" +
+                          "What should you use to perform the migration?",
+                options: [
+                    "A. Storage Migration Service",
+                    "B. Microsoft File Server Migration Toolkit",
+                    "C. File Server Resource Manager (FSRM)",
+                    "D. Windows Server Migration Tools"
+                ],
+                correctAnswerIndex: 0, // A
+                explanation: "✅ <b>Explanation:</b><br><b>A. Storage Migration Service</b> is correct.<br><br>" +
+                             "<b>💡 เทคนิคจำ Keyword:</b> 'Data share migration' + 'Windows Server 2022' = <b>Storage Migration Service</b> เสมอครับ<br><br>" +
+                             "<b>เหตุผล:</b> Storage Migration Service เป็นเครื่องมือที่ทันสมัยที่สุดสำหรับย้าย File Server ปัจจุบัน มันสามารถคัดลอกข้อมูล, รักษาโครงสร้าง Share และ Permission ทั้งหมดได้อย่างสมบูรณ์ครับ"
+            },
+	       // ==========================================
+            // Question 83 (Topic 6: Fabrikam - Q10: Migrate APP3 and APP4)
+            // ==========================================
+            {
+                topic: "Topic 6: Fabrikam",
+                type: "dropdown",
+                question: fabrikamContext +
+                          "<b>Question:</b><br>" +
+                          "You are planning the migration of APP3 and APP4 to support the Azure migration plan.<br>" +
+                          "What should you do on Cluster1 and in Azure before you perform the migration? To answer, select the appropriate options in the answer area.",
+                dropdowns: [
+                    { 
+                        id: "q85-dd1", 
+                        label: "On Cluster1:", 
+                        options: ["Create a Point-to-Site(P2S) VPN Connection to Vnet1","Import the Azure Migrate appliance", "Install the Azure File Sync agent", "Install the Windows Server Migration Tools", "Configure Azure Network Adapter"], 
+                        correctAnswer: "Import the Azure Migrate appliance" 
+                    },
+                    { 
+                        id: "q85-dd2", 
+                        label: "In Azure:", 
+                        options: ["Create a premium block blobs Azure Storage account", "Create an Azure Migrate project", "Create a private endpoint", "Create a VPN gateway"], 
+                        correctAnswer: "Create an Azure Migrate project" 
+                    }
+                ],
+                explanation: "✅ <b>Explanation:</b><br>" +
+                             "<b>💡 เทคนิคจำ:</b> ย้าย VM ด้วย Azure Migrate ต้องใช้ <b>Appliance</b> ฝั่งต้นทาง และ <b>Project</b> ฝั่งปลายทาง<br><br>" +
+                             "• <b>On Cluster1 (ต้นทาง):</b> คุณต้อง <b>Import the Azure Migrate appliance</b> (ซึ่งมักจะเป็นไฟล์ OVA/VHD) ลงใน Hyper-V Cluster เพื่อให้มันทำหน้าที่ตรวจพบ (Discover) และรวบรวมข้อมูล VM ของเรา<br>" +
+                             "• <b>In Azure (ปลายทาง):</b> ต้อง <b>Create an Azure Migrate project</b> ใน Azure Portal ก่อน เพื่อใช้เป็นที่เก็บข้อมูลผลการประเมิน (Assessment) และเป็นศูนย์กลางในการควบคุมการย้ายเครื่องเสมือน (Migration) ครับ"
+            },
+	        // ==========================================
+            // Question 84 (Topic 6: Fabrikam - Q11: ADMT PES Migration)
+            // ==========================================
+            {
+                topic: "Topic 6: Fabrikam",
+                type: "dropdown",
+                question: fabrikamContext +
+                          "<b>Question:</b><br>" +
+                          "You are planning the europe.fabrikam.com migration to support the on-premises migration plan.<br>" +
+                          "Where should you install the Password Export Server (PES) service, where should you generate the encryption key? To answer, select the appropriate options in the answer area.",
+                dropdowns: [
+                    { 
+                        id: "q86-dd1", 
+                        label: "Install the PES service on:", 
+                        options: ["aadc1.corp.fabrikam.com", "admtcomputer.fabrikam.com", "dc1.corp.fabrikam.com", "dc2.europe.fabrikam.com"], 
+                        correctAnswer: "dc2.europe.fabrikam.com" 
+                    },
+                    { 
+                        id: "q86-dd2", 
+                        label: "Generate the encryption key on:", 
+                        options: ["aadc1.corp.fabrikam.com", "admtcomputer.fabrikam.com", "dc1.corp.fabrikam.com", "dc2.europe.fabrikam.com"], 
+                        correctAnswer: "admtcomputer.fabrikam.com" 
+                    }
+                ],
+                explanation: "✅ <b>Explanation:</b><br>" +
+                             "<b>💡 เทคนิคจำ:</b> PES อยู่ **Source DC** | Encryption Key สร้างที่ **ADMT Server** เสมอครับ<br><br>" +
+                             "• <b>Install the PES service (dc2.europe.fabrikam.com):</b> บริการ PES ทำหน้าที่ดึง Password จากโดเมนต้นทาง ดังนั้นต้องติดตั้งบน Domain Controller ของโดเมนที่เป็น Source คือ <code>dc2.europe.fabrikam.com</code> <br>" +
+                             "• <b>Generate the encryption key (admtcomputer.fabrikam.com):</b> กุญแจสำหรับการเข้ารหัสรหัสผ่านที่ย้ายข้ามโดเมน ต้องสร้างบนเครื่องที่ลง ADMT ไว้ ซึ่งในโจทย์ระบุว่าเราใช้ <code>admtcomputer.fabrikam.com</code> ในการรันคำสั่ง migration ครับ "
+            },
+            // ==========================================
+            // Question 70 (Topic 7 - Testlet 2: Contoso - Q1)
+            // ==========================================
+            {
+                topic: "Topic 7: Contoso",
+                type: "dropdown",
+                question: contosoContext +
+                          "<b>Question:</b><br>" +
+                          "You need to configure BitLocker on Server4.<br>" +
+                          "On which volumes can you turn on BitLocker, and on which volumes can you turn on auto-unlock? To answer, select the appropriate options.",
+                dropdowns: [
+                    { 
+                        id: "q70-dd1", 
+                        label: "BitLocker:", 
+                        options: ["D only", "C and D only", "D, E, and F only", "C, D, E, and F"], 
+                        correctAnswer: "C, D, E, and F" 
+                    },
+                    { 
+                        id: "q70-dd2", 
+                        label: "Auto-unlock:", 
+                        options: ["D only", "C and D only", "D, E, and F only", "C, D, E, and F"], 
+                        correctAnswer: "D, E, and F only" 
+                    }
+                ],
+                explanation: "✅ <b>Explanation:</b><br>" +
+                             "<b>💡 เทคนิคจำ Keyword:</b> 'BitLocker' เปิดได้หมดทุกไดรฟ์ / 'Auto-unlock' เปิดได้เฉพาะ Data Drive<br><br>" +
+                             "• <b>BitLocker:</b> Windows Server 2022 รองรับการเข้ารหัส BitLocker ทั้งบน <b>NTFS และ ReFS</b> รวมถึงไดรฟ์ OS ด้วย ดังนั้นเปิดได้ทั้งหมด <b>(C, D, E, and F)</b><br>" +
+                             "• <b>Auto-unlock:</b> ฟีเจอร์ปลดล็อกอัตโนมัติจะทำงานเมื่อเข้าถึงไดรฟ์ข้อมูล (Data Volume) โดยอ้างอิงจากไดรฟ์ OS ที่ปลดล็อกแล้ว จึงทำได้แค่บนไดรฟ์ <b>D, E, and F only</b>"
+            },
+            // ==========================================
+            // Question 71 (Topic 7 - Testlet 2: Contoso - Q2)
+            // ==========================================
+            {
+                topic: "Topic 7: Contoso",
+                type: "dropdown",
+                question: contosoContext +
+                          "<b>Question:</b><br>" +
+                          "What is the effective minimum password length for User1 and Admin1?",
+                dropdowns: [
+                    { 
+                        id: "q71-dd1", 
+                        label: "User1:", 
+                        options: ["8", "9", "10", "11", "12"], 
+                        correctAnswer: "9" 
+                    },
+                    { 
+                        id: "q71-dd2", 
+                        label: "Admin1:", 
+                        options: ["8", "9", "10", "11", "12"], 
+                        correctAnswer: "8" 
+                    }
+                ],
+                explanation: "✅ <b>Explanation:</b><br>" +
+                             "<b>💡 เทคนิคจำ Keyword:</b> กฎ Password ใน AD ดูที่ PSO ก่อน GPO และค่า Precedence น้อย = ชนะ!<br><br>" +
+                             "• <b>User1 (ตอบ 9):</b> อยู่ทั้ง Group 2 (PSO1) และ Group 4 (PSO2) ระบบจะเลือกตัวที่ <b>Precedence ต่ำกว่า</b> คือ PSO1 (10) ซึ่งตั้งค่าไว้ที่ <b>9</b><br>" +
+                             "• <b>Admin1 (ตอบ 8):</b> ไม่มี PSO บังคับ ดังนั้นต้องใช้ GPO แต่ GPO ระดับ OU (GPO1) ไม่มีผลกับ Password ของ Domain User ต้องดึงมาจาก <b>Default Domain Policy</b> ซึ่งตั้งไว้ที่ <b>8</b> ครับ"
+            },
+            // ==========================================
+            // Question 72 (Topic 7 - Testlet 2: Contoso - Q3)
+            // ==========================================
+            {
+                topic: "Topic 7: Contoso",
+                type: "hotspot",
+                question: contosoContext +
+                          "<b>Question:</b><br>" +
+                          "For each of the following statements, select Yes if the statement is true. Otherwise, select No.",
+                statements: [
+                    { text: "User1 can sign in to Server4 by using Remote Desktop.", correctAnswer: "No" },
+                    { text: "User2 can sign in to Server4 by using Remote Desktop.", correctAnswer: "Yes" },
+                    { text: "User3 can sign in to Server4 by using Remote Desktop.", correctAnswer: "No" }
+                ],
+                explanation: "✅ <b>Explanation:</b><br>" +
+                             "<b>💡 เทคนิคจำ Keyword:</b> ตรวจสอบตาราง Group4 (Deny access from network) และ Group3 (Deny RDP) กฎ Deny ชนะเสมอ<br><br>" +
+                             "• <b>User1 (No):</b> แม้จะอยู่ Group2 (Allow) แต่ User1 ดันอยู่ <b>Group4</b> ด้วย ซึ่งโดนตั้งค่า 'Deny access from the network'<br>" +
+                             "• <b>User2 (Yes):</b> อยู่ Group2 อย่างเดียว ได้สิทธิ์ Allow RDP และไม่โดน Deny ใดๆ<br>" +
+                             "• <b>User3 (No):</b> อยู่ Group3 ซึ่งโดนตั้ง 'Deny log on through Remote Desktop Services' ชัดเจนครับ"
+            },
+            // ==========================================
+            // Question 73 (Topic 7 - Testlet 2: Contoso - Q4)
+            // ==========================================
+            {
+                topic: "Topic 7: Contoso",
+                type: "dropdown",
+                question: contosoContext +
+                          "<b>Question:</b><br>" +
+                          "With which servers can Server1 and Server3 communicate? To answer, select the appropriate options.",
+                dropdowns: [
+                    { 
+                        id: "q73-dd1", 
+                        label: "Server1 can communicate with:", 
+                        options: ["Server2 only", "Server3 only", "Server2 and Server3 only", "Server2, Server3, and Server4", "None of the servers"], 
+                        correctAnswer: "Server2, Server3, and Server4" 
+                    },
+                    { 
+                        id: "q73-dd2", 
+                        label: "Server3 can communicate with:", 
+                        options: ["Server2 only", "Server1 and Server2 only", "Server2, Server3, and Server4", "Server1, Server3, and Server4", "None of the servers"], 
+                        correctAnswer: "Server1 and Server2 only" 
+                    }
+                ],
+                explanation: "✅ <b>Explanation:</b><br>" +
+                             "<b>💡 เทคนิคจำ Keyword:</b> 'Request' = คุยแบบไหนก็ได้ / 'Require' = บังคับเข้ารหัส (IPsec) เท่านั้น<br><br>" +
+                             "• <b>Server1 (Request In/Out):</b> ยอมคุยกับคนที่ไม่เข้ารหัสด้วย (Server4) และคุยกับคนที่บังคับเข้ารหัสได้ (Server2, 3) จึงตอบ <b>(Server2, Server3, Server4)</b><br>" +
+                             "• <b>Server3 (Require In/Out):</b> บังคับทำ IPsec เท่านั้น ซึ่ง Server1/2 รองรับ แต่มันคุยกับ Server4 ไม่ได้ เพราะ Server4 ไม่มีกฎ IPsec เลย ตอบ <b>(Server1 and Server2 only)</b>"
+            },
+	        // ==========================================
+            // Question 75 (Topic 7: Contoso - Q5: ASR Providers)
+            // ==========================================
+            {
+                topic: "Topic 7: Contoso",
+                type: "mcq",
+                question: contosoContext +
+                          "<b>Question:</b><br>" +
+                          "You are evaluating technical requirements for Cluster2.<br>" +
+                          "What is the minimum number of Azure Site Recovery Providers that you should install?",
+                options: [
+                    "A. 1",
+                    "B. 4",
+                    "C. 12",
+                    "D. 16"
+                ],
+                correctAnswerIndex: 1, // B
+                explanation: "✅ <b>Explanation:</b><br><b>B. 4</b> is correct.<br><br>" +
+                             "<b>💡 เทคนิคจำ Keyword:</b> 'Replicate Cluster2 (4 nodes)' -> จำนวน Provider ต้องเท่ากับ จำนวนโหนดเสมอ<br><br>" +
+                             "<b>เหตุผล:</b> ในการทำ Azure Site Recovery (ASR) เพื่อปกป้อง Hyper-V Cluster พี่จะต้องทำการติดตั้ง <b>Azure Site Recovery Provider</b> ลงใน <b>ทุกๆ โหนด (Every node)</b> ของคลัสเตอร์นั้นครับ เนื่องจาก Cluster2 มีทั้งหมด 4 โหนด จึงต้องติดตั้งขั้นต่ำ 4 ตัวครับ"
+            },
+            // ==========================================
+            // Question 76 (Topic 7: Contoso - Q6: Backup Server4)
+            // ==========================================
+            {
+                topic: "Topic 7: Contoso",
+                type: "mcq",
+                question: contosoContext +
+                          "<b>Question:</b><br>" +
+                          "You need to back up Server4 to meet the technical requirements.<br>" +
+                          "What should you do first?",
+                options: [
+                    "A. Deploy Microsoft Azure Backup Server (MABS).",
+                    "B. Configure Windows Server Backup.",
+                    "C. Install the Microsoft Azure Recovery Services (MARS) agent.",
+                    "D. Configure Storage Replica."
+                ],
+                correctAnswerIndex: 2, // C
+                explanation: "✅ <b>Explanation:</b><br><b>C. Install the Microsoft Azure Recovery Services (MARS) agent.</b> is correct.<br><br>" +
+                             "<b>💡 เทคนิคจำ Keyword:</b> 'Back up Server4 (standalone) to Azure Recovery Services vault' -> ใช้ MARS Agent<br><br>" +
+                             "<b>เหตุผล:</b> Server4 เป็นเซิร์ฟเวอร์แบบ On-premises การจะสำรองข้อมูลไฟล์ โฟลเดอร์ หรือ System State แล้วโยนขึ้นไปเก็บบน Azure Recovery Services Vault โดยตรง สิ่งแรกที่ต้องทำคือการดาวน์โหลดและติดตั้ง <b>MARS Agent</b> ลงบนเครื่อง Server4 ครับ"
+            },
+            // ==========================================
+            // Question 77 (Topic 7: Contoso - Q7: Hyper-V Replica on Cluster3)
+            // ==========================================
+            {
+                topic: "Topic 7: Contoso",
+                type: "mcq",
+                question: contosoContext +
+                          "<b>Question:</b><br>" +
+                          "You need to meet the technical requirements for Cluster3.<br>" +
+                          "What should you include in the solution?",
+                options: [
+                    "A. Enable integration services on all the virtual machines.",
+                    "B. Configure a fault domain for the cluster.",
+                    "C. Add a failover cluster role."
+                ],
+                correctAnswerIndex: 2, // C
+                explanation: "✅ <b>Explanation:</b><br><b>C. Add a failover cluster role.</b> is correct.<br><br>" +
+                             "<b>💡 เทคนิคจำ Keyword:</b> 'Hyper-V Replica on Cluster3' -> ต้องสร้าง Role ในคลัสเตอร์เสมอ<br><br>" +
+                             "<b>เหตุผล:</b> การจะเปิดใช้งาน Hyper-V Replica บนสภาพแวดล้อมที่เป็น <b>Failover Cluster</b> (อย่างเช่น Cluster3) เราไม่สามารถไปตั้งค่าที่โหนดตรงๆ ได้แบบเครื่องเดี่ยวครับ แต่จะต้องไปสร้าง Role พิเศษที่ชื่อว่า <b>Hyper-V Replica Broker</b> ขึ้นมาใน Failover Cluster Manager ก่อนเสมอครับ"
+            },
+            // ==========================================
+            // Question 78 (Topic 7: Contoso - Q8: Enable Replication Sequence)
+            // ==========================================
+            {
+                topic: "Topic 7: Contoso",
+                type: "dragdrop",
+                question: contosoContext +
+                          "<b>Question:</b><br>" +
+                          "You need to meet the technical requirements for Cluster2.<br>" +
+                          "Which four actions should you perform in sequence before you can enable replication? To answer, move the appropriate actions from the list of actions to the answer area and arrange them in the correct order.",
+                draggables: [
+                    "Create a Hyper-V site.",
+                    "Install and register Azure Site Recovery Providers.",
+                    "Create and associate replication policies.",
+                    "Create an Azure Recovery Services vault."
+                ],
+                correctOrder: [
+                    "Create an Azure Recovery Services vault.",
+                    "Create a Hyper-V site.",
+                    "Install and register Azure Site Recovery Providers.",
+                    "Create and associate replication policies."
+                ],
+                explanation: "✅ <b>Explanation:</b><br>" +
+                             "<b>💡 เทคนิคจำ Keyword:</b> ลำดับการทำ ASR คือ <b>Vault -> Site -> Provider -> Policy</b><br><br>" +
+                             "<b>1. Create an Azure Recovery Services vault:</b> ต้องสร้างพื้นที่เก็บบนคลาวด์ Azure เป็นอันดับแรก<br>" +
+                             "<b>2. Create a Hyper-V site:</b> สร้าง Site ในหน้า Azure Portal เพื่อจัดกลุ่มโฮสต์ต้นทาง<br>" +
+                             "<b>3. Install and register Azure Site Recovery Providers:</b> ติดตั้งโปรแกรม (Provider) ลงในเครื่อง Hyper-V เพื่อให้เชื่อมกับ Vault ได้<br>" +
+                             "<b>4. Create and associate replication policies:</b> กำหนดนโยบาย (เช่น ให้ Sync ทุกๆ 5 นาที) แล้วนำไปผูกกับ Site จากนั้นจึงจะเริ่มสั่ง Replicate VM ได้ครับ"
+            },
+            // ==========================================
+            // Question 79 (Topic 7: Contoso - Q9: Migrate Share1)
+            // ==========================================
+            {
+                topic: "Topic 7: Contoso",
+                type: "mcq",
+                question: contosoContext +
+                          "<b>Question:</b><br>" +
+                          "You need to meet technical requirements for Share1.<br>" +
+                          "What should you use?",
+                options: [
+                    "A. Storage Migration Service",
+                    "B. File Server Resource Manager (FSRM)",
+                    "C. Server Manager",
+                    "D. Storage Replica"
+                ],
+                correctAnswerIndex: 0, // A
+                explanation: "✅ <b>Explanation:</b><br><b>A. Storage Migration Service</b> is correct.<br><br>" +
+                             "<b>💡 เทคนิคจำ Keyword:</b> 'Migrate Share1 to Server2, including all the share and folder permissions' -> <b>Storage Migration Service (SMS)</b><br><br>" +
+                             "<b>เหตุผล:</b> ฟีเจอร์ <b>Storage Migration Service (ใช้งานผ่าน Windows Admin Center)</b> ถูกออกแบบมาเพื่อจัดการงานย้าย File Server โดยเฉพาะครับ มันเก่งเรื่องการกวาดเอาข้อมูล, สิทธิ์การเข้าถึง (Permissions), แชร์โฟลเดอร์ ไปจนถึงการโยกชื่อเครื่อง/IP (Identity) ย้ายตามไปได้อย่างเนียนกริบเลยครับ"
+            },
+	    // ==========================================
+            // Question 87 (Topic 7: Contoso - Q10: Monitoring DCs)
+            // ==========================================
+            {
+                topic: "Topic 7: Contoso",
+                type: "dropdown",
+                question: contosoContext +
+                          "<b>Question:</b><br>" +
+                          "You need to implement alerts for the domain controllers. The solution must meet the technical requirements.<br>" +
+                          "What should you do on the domain controllers, and what should you create on Azure? To answer, select the appropriate options in the answer area.",
+                dropdowns: [
+                    { 
+                        id: "q87-dd1", 
+                        label: "On the domain controllers:", 
+                        options: ["Create a Data Collector Set in Performance Monitor", "Modify the Performance Monitor Users group", "Install the Azure Monitor agent"], 
+                        correctAnswer: "Install the Azure Monitor agent" 
+                    },
+                    { 
+                        id: "q87-dd2", 
+                        label: "In Azure:", 
+                        options: ["Create an Azure SQL database", "Create a Storage Sync Service", "Create an Azure Log Analytics workspace", "Create an Azure Storage account"], 
+                        correctAnswer: "Create an Azure Log Analytics workspace" 
+                    }
+                ],
+                explanation: "✅ <b>Explanation:</b><br>" +
+                             "<b>💡 เทคนิคจำ:</b> อยากทำ Monitoring/Alert บน Azure ต้องมี <b>Agent (ฝั่งเซิร์ฟเวอร์)</b> และ <b>Workspace (ฝั่งคลาวด์)</b> เสมอครับ<br><br>" +
+                             "• <b>On the domain controllers:</b> สิ่งที่ต้องทำบนเซิร์ฟเวอร์เพื่อให้ส่งข้อมูล Performance/Event ไปยัง Azure ได้คือการ <b>Install the Azure Monitor agent (AMA)</b> ครับ ซึ่งเป็น Agent รุ่นใหม่ที่ Microsoft แนะนำสำหรับรวบรวมข้อมูล<br><br>" +
+                             "• <b>In Azure:</b> ปลายทางที่จะเป็นที่เก็บข้อมูล (Log) และเป็นที่ที่เราจะไปตั้งค่า Alert ต่างๆ ได้นั้นคือ <b>Create an Azure Log Analytics workspace</b> ครับ"
+            },
+	    // ==========================================
+            // Question 88 (Topic 7: Contoso - Q11: Add User1 to Group)
+            // ==========================================
+            {
+                topic: "Topic 7: Contoso",
+                type: "mcq",
+                question: contosoContext +
+                          "<b>Question:</b><br>" +
+                          "You need to meet the technical requirements for User1.<br>" +
+                          "To which group in contoso.com should you add User1?",
+                options: [
+                    "A. Domain Admins",
+                    "B. Account Operators",
+                    "C. Schema Admins",
+                    "D. Backup Operators"
+                ],
+                correctAnswerIndex: 0, // A
+                explanation: "✅ <b>Explanation:</b><br><b>A. Domain Admins</b> is correct.<br><br>" +
+                             "<b>💡 เทคนิคจำ:</b> การกู้คืนข้อมูลใน AD Recycle Bin ต้องการสิทธิ์ระดับสูง ซึ่ง **Domain Admins** คือคำตอบที่เหมาะสมที่สุดตามโจทย์กำหนดครับ<br><br>" +
+                             "<b>เหตุผล:</b> แม้จะเน้นเรื่อง Least Privilege แต่การจัดการกู้คืนวัตถุในระดับ Domain Controller (Recycle Bin) จำเป็นต้องใช้สิทธิ์ของ Domain Admin ในการเข้าถึงและแก้ไขวัตถุที่ถูกลบไปครับ"
+            },
+	    // ==========================================
+            // Question 89 (Topic 7: Contoso - Q12: DC4 Online Requirement)
+            // ==========================================
+            {
+                topic: "Topic 7: Contoso",
+                type: "mcq",
+                question: contosoContext +
+                          "<b>Question:</b><br>" +
+                          "Which domain controller should be online to meet the technical requirements for DC4?",
+                options: [
+                    "A. DC1",
+                    "B. DC2",
+                    "C. DC3"
+                ],
+                correctAnswerIndex: 0, // A
+                explanation: "✅ <b>Explanation:</b><br><b>A. DC1</b> is correct.<br><br>" +
+                             "<b>💡 เทคนิคจำ:</b> การโปรโมต Domain Controller ใหม่ ต้องใช้สิทธิ์แก้ Schema ดังนั้นต้อง <b>Schema master</b> เท่านั้นที่ต้องออนไลน์ครับ<br><br>" +
+                             "<b>เหตุผล:</b> จากตาราง Operation master role ในโจทย์ DC1 เป็นผู้ถือครองบทบาท <b>Schema master</b>[cite: 1] ซึ่งเป็น role สำคัญที่ต้องออนไลน์ในระหว่างการเพิ่ม DC ใหม่เข้าไปในฟอเรสต์ครับ"
+            }
+        ];
+
+        // ==========================================
+        // 🚨 ตั้งค่าเลขข้อเริ่มต้น
+        // ==========================================
+        const STARTING_QUESTION_NUMBER = 1; 
+
+        let currentQuestion = 0; 
+        let score = 0; 
+        let questionStates = []; 
+
+        function getQuestionInfo(globalIndex) {
+            if(quizData.length === 0) return { topicName: "Topic", questionNumber: STARTING_QUESTION_NUMBER };
+            
+            let firstTopicOfFile = quizData[0].topic || "Topic 6"; 
+            let topic = firstTopicOfFile; 
+            let localNum = STARTING_QUESTION_NUMBER; 
+
+            for (let i = 1; i <= globalIndex; i++) {
+                if (quizData[i].topic && quizData[i].topic !== topic) {
+                    topic = quizData[i].topic; 
+                    localNum = 1;              
+                } else {
+                    localNum++;                
+                }
+            }
+            return { topicName: topic, questionNumber: localNum };
+        }
+
+        function drawNavigationGrid() {
+            const navGrid = document.getElementById('navigation-grid');
+            navGrid.innerHTML = '';
+            
+            let currentTopicName = "";
+            let currentTopicGroup = null;
+            let localNum = 1;
+            const firstTopicOfFile = quizData[0].topic || "Topic 6";
+
+            quizData.forEach((q, index) => {
+                let thisTopic = q.topic ? q.topic : currentTopicName;
+                if (!thisTopic) thisTopic = "Topic 6"; 
+
+                if (thisTopic !== currentTopicName) {
+                    currentTopicName = thisTopic;
+                    
+                    if (currentTopicName === firstTopicOfFile) {
+                        localNum = STARTING_QUESTION_NUMBER;
+                    } else {
+                        localNum = 1;
+                    }
+                    
+                    const topicHeader = document.createElement('div');
+                    topicHeader.style.width = '100%';
+                    topicHeader.style.fontWeight = 'bold';
+                    topicHeader.style.marginTop = index === 0 ? '0px' : '15px';
+                    topicHeader.style.marginBottom = '8px';
+                    topicHeader.style.color = '#0078d4';
+                    topicHeader.style.borderBottom = '1px solid #ccc';
+                    topicHeader.innerText = currentTopicName;
+                    navGrid.appendChild(topicHeader);
+                    
+                    currentTopicGroup = document.createElement('div');
+                    currentTopicGroup.style.display = 'flex';
+                    currentTopicGroup.style.flexWrap = 'wrap';
+                    currentTopicGroup.style.gap = '8px';
+                    currentTopicGroup.style.width = '100%';
+                    navGrid.appendChild(currentTopicGroup);
+                }
+
+                const btn = document.createElement('button');
+                btn.className = 'nav-btn';
+                btn.innerText = localNum; 
+                
+                if (index === currentQuestion) btn.classList.add('active');
+                else if (questionStates[index] === true) btn.classList.add('answered-correct');
+                else if (questionStates[index] === false) btn.classList.add('answered-wrong');
+                
+                btn.onclick = () => jumpToQuestion(index);
+                currentTopicGroup.appendChild(btn);
+                
+                localNum++;
+            });
+        }
+
+        function jumpToQuestion(index) {
+            currentQuestion = index;
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            if(questionStates.length === 0) questionStates = new Array(quizData.length).fill(null);
+            document.getElementById('submit-btn').style.display = 'inline-block';
+            document.getElementById('next-btn').style.display = 'none';
+            document.getElementById('explanation-box').style.display = 'none';
+            document.getElementById('prev-btn').disabled = (currentQuestion === 0); 
+            
+            drawNavigationGrid(); 
+
+            const q = quizData[currentQuestion];
+            const info = getQuestionInfo(currentQuestion);
+            
+            document.getElementById('question-counter').innerText = `${info.topicName} - Question: ${info.questionNumber}`;
+            
+            let topicHtml = `<div style='font-size: 1.1em; color: #d9534f; margin-bottom: 15px; font-weight: bold; padding-bottom: 5px; border-bottom: 2px dashed #ccc;'>📌 ${info.topicName}</div>`;
+            document.getElementById('question-text').innerHTML = `${topicHtml}<div class="question-badge">Question ${info.questionNumber}</div><br>${q.question}`;
+            
+            const mcqContainer = document.getElementById('options-container');
+            const ddContainer = document.getElementById('dragdrop-container');
+            const hsContainer = document.getElementById('hotspot-container');
+            const dropdownContainer = document.getElementById('dropdown-container');
+            
+            mcqContainer.style.display = "none"; ddContainer.style.display = "none"; hsContainer.style.display = "none"; dropdownContainer.style.display = "none";
+
+            if (!q.type || q.type === "mcq" || q.type === "multiple_select") {
+                mcqContainer.style.display = "block"; mcqContainer.innerHTML = '';
+                let inputType = (q.type === "multiple_select") ? "checkbox" : "radio";
+                q.options.forEach((opt, index) => {
+                    const label = document.createElement('label');
+                    label.innerHTML = `<input type="${inputType}" name="option" value="${index}"> <span style="margin-left:10px;">${opt}</span>`;
+                    mcqContainer.appendChild(label);
+                });
+            } 
+            else if (q.type === "dragdrop") {
+                ddContainer.style.display = "flex";
+                const sourceBox = document.getElementById('source-box'); 
+                const targetsWrapper = document.getElementById('targets-wrapper');
+                
+                sourceBox.innerHTML = '<h4>Options</h4>';
+                targetsWrapper.innerHTML = ''; 
+
+                q.draggables.forEach((itemText, index) => {
+                    const div = document.createElement('div'); div.className = 'draggable'; div.id = `drag-${index}`; div.draggable = true; div.ondragstart = drag; div.innerText = itemText; sourceBox.appendChild(div);
+                });
+
+                if (q.targets) {
+                    q.targets.forEach((target, index) => {
+                        targetsWrapper.innerHTML += `<div class="target-area" id="target-box-${index}" ondrop="drop(event)" ondragover="allowDrop(event)"><div class="target-label">${target.label}</div></div>`;
+                    });
+                } else {
+                    targetsWrapper.innerHTML = `<div class="target-area" id="target-box-0" ondrop="drop(event)" ondragover="allowDrop(event)" style="flex:1;"><div class="target-label">Answer Area (Drop here in order)</div></div>`;
+                }
+            }
+            else if (q.type === "hotspot") {
+                hsContainer.style.display = "block";
+                let html = `<table class="hotspot-table"><tr><th>Statements</th><th>Yes</th><th>No</th></tr>`;
+                q.statements.forEach((stmt, index) => {
+                    html += `<tr id="hs-row-${index}">
+                        <td>${stmt.text}</td>
+                        <td onclick="document.getElementById('yes-${index}').checked = true;"><input type="radio" id="yes-${index}" name="hs-${index}" value="Yes"></td>
+                        <td onclick="document.getElementById('no-${index}').checked = true;"><input type="radio" id="no-${index}" name="hs-${index}" value="No"></td>
+                    </tr>`;
+                });
+                html += `</table>`; hsContainer.innerHTML = html;
+            }
+            else if (q.type === "dropdown" || q.type === "inline_dropdown") {
+                dropdownContainer.style.display = "block";
+                let html = '<div class="dd-area" style="text-align:left; overflow-x:auto;"><h3>Answer Area</h3><br>';
+                
+                if (q.type === "inline_dropdown") {
+                    let template = q.inlineTemplate;
+                    q.dropdowns.forEach((dd, index) => {
+                        let selectHtml = `<select id="sel-${index}" class="dd-select" style="width:auto; display:inline-block; margin: 0 5px; font-family:sans-serif; font-size:1em; padding: 5px;"><option value="">-- Select --</option>`;
+                        dd.options.forEach(opt => { selectHtml += `<option value="${opt}">${opt}</option>`; });
+                        selectHtml += `</select>`;
+                        template = template.replace(`[DD${index}]`, selectHtml);
+                    });
+                    html += `<div style="font-family: monospace; font-size: 1.1em; white-space: normal; word-wrap: break-word; padding: 15px; background: white; border: 1px solid #ccc; border-radius: 5px;">${template}</div>`;
+                } else {
+                    q.dropdowns.forEach((dd, index) => {
+                        html += `<div class="dd-row"><div class="dd-label">${dd.label}</div><select id="sel-${index}" class="dd-select"><option value="">-- Select --</option>`;
+                        dd.options.forEach(opt => { html += `<option value="${opt}">${opt}</option>`; });
+                        html += `</select></div>`;
+                    });
+                }
+                html += '</div>'; dropdownContainer.innerHTML = html;
+            }
+
+            if (questionStates[currentQuestion] !== null) {
+                showPastAnswerFeedback();
+            }
+        }
+
+        function allowDrop(ev) { ev.preventDefault(); }
+        function drag(ev) { ev.dataTransfer.setData("text", ev.target.id); }
+        function drop(ev) {
+            ev.preventDefault(); 
+            if(questionStates[currentQuestion] !== null) return;
+            const data = ev.dataTransfer.getData("text"); 
+            const draggedElement = document.getElementById(data);
+            
+            let dropZone = ev.target.closest('.target-area') || ev.target.closest('.dd-box');
+            if (dropZone) dropZone.appendChild(draggedElement);
+        }
+
+        function checkAnswer() {
+            if(questionStates[currentQuestion] !== null) return;
+            const q = quizData[currentQuestion];
+            let isCorrect = false;
+
+            if (!q.type || q.type === "mcq") {
+                const selectedOption = document.querySelector('input[name="option"]:checked');
+                if (!selectedOption) { alert('Please select an answer!'); return; }
+                isCorrect = (parseInt(selectedOption.value) === q.correctAnswerIndex);
+            } 
+            else if (q.type === "multiple_select") {
+                const selectedOptions = document.querySelectorAll('input[name="option"]:checked');
+                if (selectedOptions.length === 0) { alert('Please select your answers!'); return; }
+                const userAnswers = Array.from(selectedOptions).map(opt => parseInt(opt.value)).sort();
+                const correctAnswers = [...q.correctAnswerIndex].sort();
+                isCorrect = JSON.stringify(userAnswers) === JSON.stringify(correctAnswers);
+            }
+            else if (q.type === "dragdrop") {
+                if (q.targets) {
+                    let allCorrect = true;
+                    q.targets.forEach((target, index) => {
+                        const targetBox = document.getElementById(`target-box-${index}`);
+                        const items = Array.from(targetBox.querySelectorAll('.draggable')).map(el => el.innerText.trim());
+                        if (JSON.stringify(items.sort()) !== JSON.stringify(target.expected.sort())) allCorrect = false;
+                    });
+                    isCorrect = allCorrect;
+                } else {
+                    const targetItems = document.getElementById('target-box-0').querySelectorAll('.draggable');
+                    const userAnswers = Array.from(targetItems).map(el => el.innerText.trim());
+                    if (userAnswers.length === 0) { alert('Please drag answers to the area!'); return; }
+                    isCorrect = JSON.stringify(userAnswers) === JSON.stringify(q.correctOrder);
+                }
+            }
+            else if (q.type === "hotspot") {
+                let correctCount = 0; let answeredCount = 0;
+                q.statements.forEach((stmt, index) => {
+                    const selected = document.querySelector(`input[name="hs-${index}"]:checked`);
+                    if (selected) { answeredCount++; if (selected.value === stmt.correctAnswer) correctCount++; }
+                });
+                if (answeredCount < q.statements.length) { alert('Please answer all statements!'); return; }
+                isCorrect = (correctCount === q.statements.length);
+            }
+            else if (q.type === "dropdown" || q.type === "inline_dropdown") {
+                let correctCount = 0; let answeredCount = 0;
+                q.dropdowns.forEach((dd, index) => {
+                    const sel = document.getElementById(`sel-${index}`);
+                    if (sel.value !== "") answeredCount++;
+                    if (sel.value === dd.correctAnswer) correctCount++;
+                });
+                if (answeredCount < q.dropdowns.length) { alert('Please select options for all dropdowns!'); return; }
+                isCorrect = (correctCount === q.dropdowns.length);
+            }
+
+            questionStates[currentQuestion] = isCorrect;
+            if (isCorrect) score++;
+
+            document.getElementById('score-counter').innerText = `Score: ${score}`;
+            showPastAnswerFeedback();
+            drawNavigationGrid(); 
+        }
+
+        function showPastAnswerFeedback() {
+            const q = quizData[currentQuestion];
+            const expBox = document.getElementById('explanation-box');
+            if (questionStates[currentQuestion]) {
+                expBox.className = 'explanation correct-box'; expBox.innerHTML = "<h4>Correct! 🎉</h4>" + q.explanation;
+            } else {
+                expBox.className = 'explanation incorrect-box'; expBox.innerHTML = "<h4>Incorrect / Reviewed</h4>" + q.explanation;
+            }
+            expBox.style.display = 'block';
+            document.getElementById('submit-btn').style.display = 'none';
+            document.getElementById('next-btn').style.display = 'inline-block';
+        }
+
+        function prevQuestion() { if (currentQuestion > 0) { currentQuestion--; loadQuestion(); } }
+        function nextQuestion() { 
+            if (currentQuestion < quizData.length - 1) { currentQuestion++; loadQuestion(); } 
+            else { alert(`End of Exam! Total Score: ${score} / ${quizData.length}`); }
+        }
+
+        window.onload = loadQuestion;
+        
+    </script>
+</body>
+</html>
