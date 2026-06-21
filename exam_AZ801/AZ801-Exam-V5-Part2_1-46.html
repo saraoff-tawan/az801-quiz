@@ -1,0 +1,1606 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Simulator - Template</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; color: #333; max-width: 850px; margin: 0 auto; padding: 20px; line-height: 1.6;}
+        .card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .status-bar { display: flex; justify-content: space-between; margin-bottom: 20px; color: #222; font-weight: bold; font-size: 1.2em; border-bottom: 2px solid #e0e0e0; padding-bottom: 15px;}
+        .question-badge { background-color: #0078d4; color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.9em; font-weight: bold; display: inline-block; margin-bottom: 15px;}
+        .question { font-size: 1.1em; margin-bottom: 20px;}
+        
+        /* แผงปุ่มกดข้ามข้อ (Navigation Grid) */
+        .nav-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 25px; padding: 10px; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 8px; justify-content: center; }
+        .nav-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border: 1px solid #ccc; background: white; border-radius: 5px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 0.95em;}
+        .nav-btn:hover { background: #f0f0f0; border-color: #0078d4; }
+        .nav-btn.active { background: #0078d4; color: white; border-color: #0078d4; box-shadow: 0 2px 5px rgba(0,120,212,0.4); }
+        .nav-btn.answered-correct { background: #d4edda; color: #155724; border-color: #c3e6cb; }
+        .nav-btn.answered-wrong { background: #f8d7da; color: #721c24; border-color: #f5c6cb; }
+
+        /* สไตล์ตารางโจทย์ทั่วไป */
+        /* สไตล์ตารางโจทย์ทั่วไป */
+	.info-table { width: auto; min-width: 50%; max-width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 0.95em; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .info-table th, .info-table td { border: 1px solid #aaa; padding: 8px; }
+        .info-table th { background: #e9ecef; text-align: left; }
+
+        /* ตัวเลือก MCQ (Radio และ Checkbox) */
+        .options label { display: block; padding: 15px; margin: 10px 0; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; cursor: pointer; transition: 0.2s;}
+        .options label:hover { background: #e2e6ea; }
+        input[type="radio"], input[type="checkbox"] { transform: scale(1.2); cursor: pointer; margin-right: 8px;}
+        
+        /* สไตล์ Drag & Drop (รองรับหลายกล่อง) */
+        .dd-wrapper { display: flex; gap: 20px; margin-top: 15px; align-items: flex-start; }
+        .dd-box { flex: 1; padding: 15px; border: 2px dashed #bbb; border-radius: 8px; background: #fafafa; min-height: 200px; }
+        .dd-box h4 { margin-top: 0; color: #555; text-align: center; margin-bottom: 15px;}
+        .draggable { background: #0078d4; color: white; padding: 12px; margin-bottom: 10px; border-radius: 5px; cursor: grab; text-align: left; font-weight: 500; font-size: 0.9em; box-shadow: 0 2px 4px rgba(0,0,0,0.1);}
+        .draggable:active { cursor: grabbing; }
+        
+        /* กล่องเป้าหมายสำหรับลากวาง */
+        .target-container { flex: 1; display: flex; flex-direction: column; gap: 15px; }
+        .target-area { padding: 15px; border: 2px dashed #bbb; border-radius: 8px; background: #f0f8ff; min-height: 100px; }
+        .target-label { font-weight: bold; margin-bottom: 10px; color: #333; text-align: center; border-bottom: 1px solid #ccc; padding-bottom: 10px;}
+
+        /* สไตล์ Hotspot (ตาราง Yes/No) */
+        .hotspot-table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; }
+        .hotspot-table th, .hotspot-table td { border: 1px solid #ccc; padding: 12px; }
+        .hotspot-table th { background: #0078d4; color: white; text-align: center; font-weight: bold; }
+        .hotspot-table td:first-child { width: 70%; font-weight: 500; }
+        .hotspot-table td:not(:first-child) { text-align: center; width: 15%; background: #f8f9fa; cursor: pointer;}
+
+        /* สไตล์ Dropdown */
+        .dd-area { background: #f8f9fa; border: 1px solid #dee2e6; padding: 15px; border-radius: 5px; margin-top: 15px; text-align: left; display: block; width: auto; overflow-x: auto}
+        .dd-row { margin-bottom: 10px; display: flex; align-items: center; flex-wrap: nowrap;}
+        .dd-label { width: 200px; text-align: right; margin-right: 15px; font-weight: bold; }
+        .dd-select { padding: 5px; font-size: 1em; width: auto; max-width: 170px; border: 1px solid #ccc; border-radius: 4px; }
+
+        /* ปุ่มและเฉลย */
+        .button-group { display: flex; justify-content: space-between; margin-top: 25px; }
+        .btn { background: #0078d4; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;}
+        .btn:hover { background: #005a9e; }
+        .btn-secondary { background: #6c757d; }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        .explanation { margin-top: 25px; padding: 20px; border-radius: 5px; display: none; }
+        .correct-box { background: #d4edda; border-left: 5px solid #28a745; color: #155724; }
+        .incorrect-box { background: #f8d7da; border-left: 5px solid #dc3545; color: #721c24; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <div id="navigation-grid" class="nav-grid"></div>
+
+        <div class="status-bar">
+            <span id="question-counter">Question: 1</span>
+            <span id="score-counter">Score: 0</span>
+        </div>
+        
+        <div id="question-text" class="question">Loading...</div>
+        
+        <div id="options-container" class="options" style="display: none;"></div>
+        
+        <div id="dragdrop-container" class="dd-wrapper" style="display: none;">
+            <div class="dd-box" id="source-box" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <h4>Options</h4>
+            </div>
+            <!-- กล่องเป้าหมายจะถูกสร้างที่นี่ -->
+            <div id="targets-wrapper" class="target-container"></div>
+        </div>
+
+        <div id="hotspot-container" style="display: none;"></div>
+        <div id="dropdown-container" style="display: none;"></div>
+        
+        <div class="button-group">
+            <button class="btn btn-secondary" id="prev-btn" onclick="prevQuestion()">&laquo; Back</button>
+            <div>
+                <button class="btn" id="submit-btn" onclick="checkAnswer()">Submit Answer</button>
+                <button class="btn" id="next-btn" onclick="nextQuestion()" style="display:none; background:#28a745;">Next Question &raquo;</button>
+            </div>
+        </div>
+        
+        <div id="explanation-box" class="explanation"></div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 🚨 นำโจทย์ข้อสอบมาวางใน Array นี้
+        // ==========================================
+        const quizData = [
+            // ==========================================
+            // Question 66 (Topic 2 - Q1: Failback Scenario)
+            // ==========================================
+	         // ==========================================
+            // ข้อที่มีรูปภาพ 2 รูปแทรก (Failback Scenario)
+            // ==========================================
+            {
+                topic: "Topic 2", // หรือเปลี่ยนเป็นชื่อ Topic ที่ต้องการ
+                question: "You have a failover cluster named Cluster1 that hosts an application named App1.<br>" +
+                          "The General tab in App1 Properties is shown in the General exhibit. (Click the General tab.)<br>" +
+                          "<!-- รูปที่ 1 (General tab) -->" +
+                          "<div style='margin: 15px 0;'>" +
+                          "  <img src='images2/Q1-1.jpg' style='max-width: 50%; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>" +
+                          "</div>" +
+                          
+                          "The Failover tab in App1 Properties is shown in the Failover exhibit. (Click the Failover tab.)<br>" +
+                          "<!-- รูปที่ 2 (Failover tab) -->" +
+                          "<div style='margin: 15px 0;'>" +
+                          "  <img src='images2/Q1-2.jpg' style='max-width: 50%; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>" +
+                          "</div>" +
+                          
+                          "Server1 shuts down unexpectedly.<br>" +
+                          "You need to ensure that when you start Server1, App1 continues to run on Server2.<br>" +
+                          "<b>Solution:</b> From the Failover settings, you select Prevent failback.<br>" +
+                          "Does this meet the goal?",
+                options: [
+                    "A. Yes",
+                    "B. No"
+                ],
+                correctAnswerIndex: 0,
+                explanation: "✅ <b>Explanation:</b><br><b>A. Yes</b> is correct.<br><br><b>เหตุผล:</b> การตั้งค่าเป็น <b>Prevent failback</b> จะสั่งให้ระบบไม่ต้องย้าย App1 กลับไปหาเครื่องเดิม (Server1) เมื่อเครื่องนั้นกลับมาออนไลน์ ทำให้ App1 สามารถรันบน Server2 ต่อไปได้อย่างต่อเนื่อง ซึ่งตรงตามเป้าหมายของโจทย์ครับ"
+            },
+            // ==========================================
+            // Question 67 (Topic 2 - Q2: Failback Scenario 2)
+            // ==========================================
+            {
+                question: "You have a failover cluster named Cluster1 that hosts an application named App1.<br>" +
+                          "The General tab in App1 Properties is shown in the General exhibit. (Click the General tab.)<br>" +
+                          "<!-- รูปที่ 1 (General tab) -->" +
+                          "<div style='margin: 15px 0;'>" +
+                          "  <img src='images2/Q1-1.jpg' style='max-width: 50%; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>" +
+                          "</div>" +
+                          
+                          "The Failover tab in App1 Properties is shown in the Failover exhibit. (Click the Failover tab.)<br>" +
+                          "<!-- รูปที่ 2 (Failover tab) -->" +
+                          "<div style='margin: 15px 0;'>" +
+                          "  <img src='images2/Q1-2.jpg' style='max-width: 50%; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>" +
+                          "</div>" +
+                          
+                          "Server1 shuts down unexpectedly.<br>" +
+                          "You need to ensure that when you start Server1, App1 continues to run on Server2.<br>" +
+                          "<b>Solution:</b> You increase Maximum failures in the specified period for the App1 cluster role.<br>" +
+                          "Does this meet the goal?",
+                options: [
+                    "A. Yes",
+                    "B. No"
+                ],
+                correctAnswerIndex: 1,
+                explanation: "✅ <b>Explanation:</b><br><b>B. No</b> is correct.<br><br><b>เหตุผล:</b> การเพิ่มค่า 'Maximum failures...' มีไว้สำหรับบอกว่าถ้าระบบพังติดๆ กันกี่ครั้งถึงจะปล่อยให้มันหยุดทำงาน (Failed state) ซึ่ง<b>ไม่ได้เกี่ยวอะไรเลยกับการควบคุมการย้ายกลับ (Failback)</b> เมื่อ Server1 กลับมาออนไลน์ครับ วิธีนี้จึงไม่สามารถแก้ปัญหาตามเป้าหมายได้"
+            },
+            // ==========================================
+            // Question 68 (Topic 2 - Q3: Failback Scenario 3)
+            // ==========================================
+            {
+                 question:"You have a failover cluster named Cluster1 that hosts an application named App1.<br>" +
+                          "The General tab in App1 Properties is shown in the General exhibit. (Click the General tab.)<br>" +
+                          "<!-- รูปที่ 1 (General tab) -->" +
+                          "<div style='margin: 15px 0;'>" +
+                          "  <img src='images2/Q1-1.jpg' style='max-width: 50%; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>" +
+                          "</div>" +
+                          
+                          "The Failover tab in App1 Properties is shown in the Failover exhibit. (Click the Failover tab.)<br>" +
+                          "<!-- รูปที่ 2 (Failover tab) -->" +
+                          "<div style='margin: 15px 0;'>" +
+                          "  <img src='images2/Q1-2.jpg' style='max-width: 50%; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>" +
+                          "</div>" +
+                          
+                          "Server1 shuts down unexpectedly.<br>" +
+                          "You need to ensure that when you start Server1, App1 continues to run on Server2.<br>" +
+                          "<b>Solution:</b> From the General settings, you move Server2 up (make it the most preferred owner).<br>" +
+                          "Does this meet the goal?",
+                options: [
+                    "A. Yes",
+                    "B. No"
+                ],
+                correctAnswerIndex: 0,
+                explanation: "✅ <b>Explanation:</b><br><b>A. Yes</b> is correct.<br><br><b>เหตุผล:</b> เมื่อเราย้าย Server2 ให้เลื่อนขึ้นไปอยู่บนสุด มันจะกลายเป็น <b>'Most Preferred Owner' (เครื่องโปรดอันดับ 1)</b> ดังนั้นเมื่อ Server1 กลับมาออนไลน์ ระบบก็จะไม่สนใจย้าย App กลับไปหา Server1 อีกแล้ว เพราะลูกรักเบอร์ 1 คือ Server2 ที่มันกำลังรันอยู่นั่นเองครับ"
+            },
+            // ==========================================
+            // Question 69 (Topic 2 - Q4: Cluster Quorum Math)
+            // ==========================================
+            {
+                question: "You have a failover cluster named Cluster1 that has the following configurations:<br>" +
+                          "<ul><li>Number of nodes: 6</li><li>Quorum: Dynamic quorum</li><li>Witness: File share, Dynamic witness</li></ul>" +
+                          "What is the maximum number of nodes that can fail simultaneously while maintaining quorum?",
+                options: [
+                    "A. 1",
+                    "B. 2",
+                    "C. 3",
+                    "D. 4",
+                    "E. 5"
+                ],
+                correctAnswerIndex: 2,
+                explanation: "✅ <b>Explanation:</b><br><b>C. 3</b> is correct.<br><br><b>วิธีคำนวณโควตา (Quorum Math):</b><br>1. เรามี 6 Nodes + 1 File share witness = มีคะแนนเสียง (Votes) ทั้งหมด <b>7 เสียง</b><br>2. การจะรักษาสถานะ Quorum ไว้ได้ จะต้องมีเสียงโหวตเกินครึ่งหนึ่ง (Majority) นั่นคือต้องรอดอย่างน้อย <b>4 เสียง</b><br>3. ดังนั้น 7 - 4 = <b>3 เสียง</b> คือจำนวน Node สูงสุดที่พังพร้อมกันได้โดยที่ระบบยังไม่ล่มครับ"
+            },
+            // ==========================================
+            // Question 70 (Topic 2 - Q5: Cloud Witness Config)
+            // ==========================================
+            {
+                type: "dropdown",
+                question: "HOTSPOT - <br>You have a failover cluster named FC1 that contains two nodes named Server1 and Server2.<br>" +
+                          "FC1 is configured to use a file share witness. You plan to configure FC1 to use a cloud witness.<br><br>" +
+                          "You need to configure Azure Storage accounts for the cloud witness.<br>" +
+                          "Which storage account type and authorization method should you configure? To answer, select the appropriate options in the answer area.",
+                dropdowns: [
+                    { 
+                        id: "q70-dd1",
+                        label: "Storage account type:", 
+                        options: ["Premium block blobs", "Premium file shares", "Premium page blobs", "Standard"], 
+                        correctAnswer: "Standard" 
+                    },
+                    { 
+                        id: "q70-dd2",
+                        label: "Authentication method:", 
+                        options: ["Access key", "Shared access signature (SAS)", "System-assigned managed identity in Azure AD", "User-assigned managed identity in Azure AD"], 
+                        correctAnswer: "Access key" 
+                    }
+                ],
+                explanation: "✅ <b>Explanation:</b><br>" +
+                             "<b>1. Storage account type: Standard</b><br>Cloud Witness สำหรับ Failover Cluster เป็นไฟล์เล็กจิ๋วที่แทบไม่มีการเขียนอ่านอะไรหนักๆ เลย Microsoft จึงบังคับให้ใช้ <b>Standard General Purpose v1 หรือ v2</b> เท่านั้นครับ (ห้ามใช้ Premium เด็ดขาด เปลืองและไม่รองรับ)<br><br>" +
+                             "<b>2. Authentication method: Access key</b><br>เวลาตั้งค่า Cloud Witness ใน Windows Server หน้าต่างตั้งค่าจะบังคับให้เรากรอก <b>Storage Account Name</b> และ <b>Storage Account Key (Access Key)</b> ตรงๆ ครับ ยังไม่รองรับการใช้ SAS หรือ Managed Identity สำหรับหน้าจอตั้งค่าปกติ"
+            },
+            // ==========================================
+            // Question 71 (Topic 2 - Q6: View S2D Storage)
+            // ==========================================
+            {
+                question: "Your company uses Storage Spaces Direct (S2D).<br><br>" +
+                          "You need to view the available storage in a Storage Space Direct storage pool.<br>" +
+                          "What should you use?",
+                options: [
+                    "A. System Configuration",
+                    "B. File Server Resource Manager (FSRM)",
+                    "C. the Get-StorageFileServer cmdlet",
+                    "D. Failover Cluster Manager"
+                ],
+                correctAnswerIndex: 3,
+                explanation: "✅ <b>Explanation:</b><br><b>D. Failover Cluster Manager</b> is correct.<br><br><b>เหตุผล:</b> Storage Spaces Direct (S2D) เป็นฟีเจอร์ที่ทำงานทับอยู่บน <b>Failover Cluster</b> ดังนั้นหากต้องการดูภาพรวมของ Storage Pool ด้วย GUI เครื่องมือมาตรฐานที่ใช้ได้ทันทีคือ <b>Failover Cluster Manager</b> (ในหมวด Storage -> Pools) หรือไม่ก็ใช้ Windows Admin Center ครับ"
+            },
+            // ==========================================
+            // Question 72 (Topic 2 - Q7: S2D Hyper-Converged Steps)
+            // ==========================================
+            {
+                type: "dragdrop",
+                question: "DRAG DROP - <br>You need to create a Hyper-V hyper-converged cluster that stores virtual machines by using Storage Spaces Direct (S2D).<br><br>" +
+                          "Which three actions should you perform in sequence?<br>" +
+                          "<i>(Drag the correct options to the Answer Area in order)</i>",
+                draggables: [
+                    "Create a failover cluster.",
+                    "Create a Distributed File System (DFS) namespace.",
+                    "Enable Storage Spaces Direct.",
+                    "Create a volume.",
+                    "Add a Scale-Out File Server for application role.",
+                    "Create a file share."
+                ],
+                targets: [
+                    { 
+                        label: "Answer Area (Drag here in order):", 
+                        expected: [
+                            "Create a failover cluster.",
+                            "Enable Storage Spaces Direct.",
+                            "Create a volume."
+                        ] 
+                    }
+                ],
+                explanation: "✅ <b>Correct Answer:</b><br><br>" +
+                             "<b>Step 1: Create a failover cluster.</b><br>สเต็ปแรกสุดของทุกสรรพสิ่ง ต้องเอาเครื่องทั้งหมดมา Join รวมร่างเป็น Cluster ก่อนครับ<br>" +
+                             "<b>Step 2: Enable Storage Spaces Direct.</b><br>พอกลายเป็น Cluster แล้ว ค่อยสั่งเปิดฟีเจอร์ S2D (Enable-ClusterS2D) เพื่อเอาฮาร์ดดิสก์ของทุกเครื่องมารวมกันเป็น Pool ก้อนใหญ่<br>" +
+                             "<b>Step 3: Create a volume.</b><br>เมื่อได้ Pool ก้อนใหญ่แล้ว เราค่อยมาแบ่งหั่นเป็น Volume (เช่น C: หรือ D: แบบ Cluster Shared Volume - CSV) เพื่อเอาไว้เก็บไฟล์ VM ต่อไปครับ<br><br>" +
+                             "<i>*หมายเหตุ: คำว่า 'Hyper-converged' หมายถึงเอา VM และ Storage ไว้ในเครื่องกลุ่มเดียวกันเลย ดังนั้นจึงไม่ต้องสร้าง SOFS หรือ File Share (นั่นมันสำหรับสถาปัตยกรรมแบบ Disaggregated ครับ)</i>"
+            },
+            // ==========================================
+            // Question 73 (Topic 2 - Q8: S2D DAX Support)
+            // ==========================================
+            {
+                question: "You have a Storage Spaces Direct configuration that has persistent memory and contains the data volumes shown in the following table.<br><br>" +
+                          "<table class='info-table'>" +
+                          "<tr><th>Name</th><th>File system</th></tr>" +
+                          "<tr><td>Volume1</td><td>NTFS</td></tr>" +
+                          "<tr><td>Volume2</td><td>ReFS</td></tr>" +
+                          "</table><br>" +
+                          "You plan to add data volumes to Storage Spaces Direct as shown in the following table.<br><br>" +
+                          "<table class='info-table'>" +
+                          "<tr><th>Name</th><th>File system</th></tr>" +
+                          "<tr><td>Volume3</td><td>NTFS</td></tr>" +
+                          "<tr><td>Volume4</td><td>ReFS</td></tr>" +
+                          "</table><br>" +
+                          "On which volumes can you use direct access (DAX)?",
+                options: [
+                    "A. Volume3 only",
+                    "B. Volume4 only",
+                    "C. Volume1 and Volume3 only",
+                    "D. Volume2 and Volume4 only",
+                    "E. Volume3 and Volume4 only"
+                ],
+                correctAnswerIndex: 0,
+                explanation: "✅ <b>Explanation:</b><br><b>A. Volume3 only</b> is correct.<br><br><b>ข้อสอบสับขาหลอกครับ! (Trick Question)</b><br>1. ฟีเจอร์ DAX (Direct Access) สำหรับหน่วยความจำแบบ Persistent Memory (PMEM) <b>รองรับเฉพาะระบบไฟล์แบบ NTFS เท่านั้น</b> (ตัด Volume 2 และ 4 ทิ้งทันที)<br>2. <b>กฎเหล็กของ DAX:</b> คุณไม่สามารถเปิดใช้งาน DAX บน Volume เก่าที่มีอยู่แล้วได้ (ต้อง Format ล้างทิ้งด้วยพารามิเตอร์ <code>-IsDax</code> ตอนสร้างใหม่เท่านั้น)<br>3. เนื่องจาก Volume1 มันถูกสร้างมาอยู่แล้ว จึงเปิดไม่ได้ ส่วน <b>Volume3</b> เป็นของที่เรา 'กำลังจะสร้างใหม่ (Plan to add)' จึงสามารถสั่งเปิด DAX ตอนสร้างได้ครับ คำตอบจึงตกไปที่ <b>Volume3 only</b>"
+            },
+            // ==========================================
+            // Question 74 (Topic 2 - Q9: FS vs SOFS Node Limits)
+            // ==========================================
+            {
+                type: "dropdown",
+                question: "HOTSPOT - <br>You have a failover cluster named Cluster1 that contains three nodes.<br>" +
+                          "You plan to add two file server cluster roles named File1 and File2 to Cluster1.<br>" +
+                          "<ul><li>File1 will use the <b>File Server for general use</b> role.</li>" +
+                          "<li>File2 will use the <b>Scale-Out File Server for application data</b> role.</li></ul>" +
+                          "What is the maximum number of nodes for File1 and File2 that can concurrently serve client connections?",
+                dropdowns: [
+                    { 
+                        id: "q74-dd1",
+                        label: "File1:", 
+                        options: ["1", "2", "3"], 
+                        correctAnswer: "1" 
+                    },
+                    { 
+                        id: "q74-dd2",
+                        label: "File2:", 
+                        options: ["1", "2", "3"], 
+                        correctAnswer: "3" 
+                    }
+                ],
+                explanation: "✅ <b>Explanation:</b><br>" +
+                             "<b>1. File1 (File Server for general use) = 1</b><br>General Use เป็นสถาปัตยกรรมแบบ <b>Active-Passive</b> ครับ หมายความว่าในเวลาใดเวลาหนึ่ง จะมีเพียง <b>1 Node</b> เท่านั้นที่เป็นเจ้าของดิสก์และให้บริการคลายแอนต์ ถ้าพังมันถึงจะย้ายไปเครื่องอื่น<br><br>" +
+                             "<b>2. File2 (Scale-Out File Server - SOFS) = 3</b><br>SOFS ถูกออกแบบมาเป็น <b>Active-Active</b> ครับ หมายความว่าทุกๆ Node ใน Cluster (ในข้อนี้มี 3 Nodes) สามารถรุมช่วยกันอ่านเขียนข้อมูลและให้บริการแอปพลิเคชันได้พร้อมๆ กันทั้งหมดเลยครับ"
+            },
+            // ==========================================
+            // Question 75 (Topic 2 - Q10: Cluster Advanced Policies)
+            // ==========================================
+            {
+                type: "hotspot",
+                question: "HOTSPOT - <br>You have a failover cluster named Cluster1 that contains Node1, Node2, and Node3.<br>" +
+                          "<table class='info-table'>" +
+                          "<tr><th>Name</th><th>Server role</th></tr>" +
+                          "<tr><td>Node1</td><td>File Server</td></tr>" +
+                          "<tr><td>Node2</td><td>File Server</td></tr>" +
+			  "<tr><td>Node3</td><td>File Server</td></tr>" +
+                          "</table>" +
+                          
+			  "A File Server for general use cluster role named <b>HAFS</b> is configured as follows:<br>" +
+			  "<li><b>Preferred Owners:</b> Node1 (checked), Node2 (unchecked), Node3 (unchecked)</li>" +
+                          "<!-- รูปที่ 1 (General tab) -->" +
+                          "<div style='margin: 15px 0;'>" +
+                          "  <img src='images2/Q10-1.jpg' style='max-width: 50%; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>" +
+                          "</div>" +
+                          
+                          "The Advanced Policies settings for HAFS are configured as shown in the Advanced Policies exhibit. (Click the Advanced Policies tab.<br>" +
+			  "<li><b>Possible Owners:</b> Node1 (checked), Node2 (unchecked), Node3 (checked)</li></ul>" +
+                          "<!-- รูปที่ 2 (Failover tab) -->" +
+                          "<div style='margin: 15px 0;'>" +
+                          "  <img src='images2/Q10-2.jpg' style='max-width: 50%; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>" +
+                          "</div>" +
+                          
+                          
+                          "For each of the following statements, select Yes if the statement is true. Otherwise, select No.",
+                statements: [
+                    { text: "If you select Move, and then Best Possible Node, HAFS will move to Node3.", correctAnswer: "Yes" },
+                    { text: "If you stop and start Cluster1, HAFS will come online on Node1.", correctAnswer: "Yes" },
+                    { text: "If you select Move, Select Node, and then Node2, HAFS will move to Node2.", correctAnswer: "No" }
+                ],
+                explanation: "✅ <b>Correct Answer: Yes, Yes, No</b><br><br>" +
+                             "<b>1. Yes:</b> ปัจจุบันสมมติว่ารันอยู่บน Node1 ถ้าเรากดสั่งย้ายแบบ 'Best Possible Node' ระบบจะมองหาเครื่องในรายชื่อ Possible Owners ถัดไป ซึ่งในที่นี้ <b>Node3 เป็นเพียงเครื่องเดียวที่ถูกติ๊ก Possible ไว้</b> มันจึงย้ายไป Node3 ครับ<br><br>" +
+                             "<b>2. Yes:</b> ถ้าหยุด Cluster แล้วเปิดใหม่ ระบบจะนำ Role ไปเปิดบนเครื่องที่เป็น <b>Preferred Owners (ลูกรักอันดับ 1)</b> เสมอ ซึ่งก็คือ Node1 ครับ<br><br>" +
+                             "<b>3. No:</b> จะบังคับย้ายไป Node2 <b>ทำไม่ได้เด็ดขาด</b> ครับ เพราะในเมนู Advanced Policies เครื่อง <b>Node2 ไม่ได้ถูกติ๊กใน Possible Owners</b> (หมายความว่าถูกตัดสิทธิ์จากการเป็นเจ้าของไปแล้ว) ต่อให้บังคับย้ายก็จะ Error ครับ"
+            },
+// ==========================================
+            // Question 11 (Cloud Witness Redundancy)
+            // ==========================================
+            {
+                topic: "Topic 2", // เริ่ม Topic 2 ที่ข้อนี้
+                question: "You have two Azure virtual machines that run Windows Server.<br>" +
+                          "You plan to create a failover cluster that will host the virtual machines.<br>" +
+                          "You need to configure an Azure Storage account that will be used by the cluster as a cloud witness. The solution must maximize resiliency.<br><br>" +
+                          "Which type of redundancy should you configure for the storage account?",
+                options: [
+                    "A. Geo-zone-redundant storage (GZRS)",
+                    "B. Locally-redundant storage (LRS)",
+                    "C. Zone-redundant storage (ZRS)",
+                    "D. Geo-redundant storage (GRS)"
+                ],
+                correctAnswerIndex: 2,
+                explanation: "✅ <b>Explanation:</b><br><b>C. Zone-redundant storage (ZRS)</b> is correct.<br><br><b>เหตุผล:</b> Cloud Witness ของ Windows Server Failover Cluster ปัจจุบันรองรับเฉพาะการตั้งค่า Storage แบบ <b>LRS (Locally-redundant)</b> และ <b>ZRS (Zone-redundant)</b> เท่านั้น (ไม่รองรับ GRS/GZRS) และเนื่องจากโจทย์ต้องการ 'maximize resiliency' (ความทนทานสูงสุด) ตัวเลือก ZRS จึงดีกว่า LRS ครับ"
+            },
+            // ==========================================
+            // Question 12 (CAU in WAC Drag & Drop)
+            // ==========================================
+            {
+                type: "dragdrop",
+                question: "DRAG DROP - <br>Your network contains an Active Directory Domain Services (AD DS) domain. The domain contains a failover cluster named Cluster1.<br><br>" +
+                          "You need to configure Cluster-Aware Updating (CAU) on the cluster by using Windows Admin Center (WAC).<br><br>" +
+                          "Which three actions should you perform in sequence? To answer, move the appropriate actions from the list of actions to the answer area and arrange them in the correct order.",
+                draggables: [
+                    "Add a WAC gateway.",
+                    "Add the Cluster-Aware Updating role.",
+                    "Add a group managed service account (gMSA).",
+                    "Add Cluster1 to WAC.",
+                    "Enable CredSSP."
+                ],
+                correctOrder: [
+                    "Enable CredSSP.",
+                    "Add Cluster1 to WAC.",
+                    "Add the Cluster-Aware Updating role."
+                ],
+                explanation: "✅ <b>Explanation:</b><br>" +
+                             "<b>Step 1: Enable CredSSP</b><br>การจะให้ WAC สั่งการเพื่อสร้าง Cluster หรือจัดการอัปเดตแบบข้ามเครื่องได้ จะต้องเปิดใช้งาน CredSSP เพื่อส่งผ่าน Credentials ก่อนครับ<br>" +
+                             "<b>Step 2: Add Cluster1 to WAC</b><br>เพิ่ม Cluster1 เข้ามาให้ WAC รู้จักและมองเห็น<br>" +
+                             "<b>Step 3: Add the Cluster-Aware Updating role</b><br>ติดตั้ง Role CAU ลงไปใน Cluster เพื่อเปิดใช้งานโหมด Self-updating ให้มันอัปเดตตัวเองอัตโนมัติ"
+            },
+            // ==========================================
+            // Question 13 (CAU Pre/Post Scripts)
+            // ==========================================
+            {
+                question: "You have a three-node failover cluster.<br><br>" +
+                          "You need to run pre-scripts and post-scripts when Cluster-Aware Updating (CAU) runs. The solution must minimize administrative effort.<br><br>" +
+                          "What should you use?",
+                options: [
+                    "A. Azure Functions",
+                    "B. Run profiles",
+                    "C. Windows Server Update Services (WSUS)",
+                    "D. Scheduled tasks"
+                ],
+                correctAnswerIndex: 1,
+                explanation: "✅ <b>Explanation:</b><br><b>B. Run profiles</b> is correct.<br><br><b>เหตุผล:</b> ในกระบวนการทำ Cluster-Aware Updating (CAU) เราสามารถกำหนด <b>Run Profiles (หรือ Updating Run Profile)</b> ซึ่งเป็นไฟล์ XML ที่ให้เราตั้งค่าพารามิเตอร์ต่างๆ รวมถึงการระบุตำแหน่งของ Pre-scripts และ Post-scripts ที่ต้องการให้รันก่อนและหลังอัปเดตแต่ละโหนดได้เลย โดยไม่ต้องไปสร้าง Scheduled tasks เองให้เหนื่อยครับ"
+            },
+            // ==========================================
+            // Question 14 (Failback Scenario 1)
+            // ==========================================
+            {
+                question: "You have a failover cluster named Cluster1 that hosts an application named App1.<br>" +
+                          "The General tab in App1 Properties is shown in the General exhibit.<br>" +
+                          "" +
+                          "<div style='border: 1px solid #ccc; padding: 10px; background: #fff; border-radius: 5px; margin-bottom: 15px; text-align: center;'>" +
+                          "  <div style='font-weight: bold; margin-bottom: 10px; text-align: left; border-bottom: 1px solid #eee; padding-bottom: 5px;'>General Exhibit</div>" +
+                          "  <img src='images2/Q14-1.jpg' style='width: 50%; max-width: 500px; border: 1px solid #eee;'>" +
+                          "</div>" +
+                          "The Failover tab in App1 Properties is shown in the Failover exhibit.<br>" +
+                          "" +
+                          "<div style='border: 1px solid #ccc; padding: 10px; background: #fff; border-radius: 5px; margin-bottom: 15px; text-align: center;'>" +
+                          "  <div style='font-weight: bold; margin-bottom: 10px; text-align: left; border-bottom: 1px solid #eee; padding-bottom: 5px;'>Failover Exhibit</div>" +
+                          "  <img src='images2/Q14-2.jpg' style='width: 50%; max-width: 500px; border: 1px solid #eee;'>" +
+                          "</div>" +
+                          "Server1 shuts down unexpectedly.<br>" +
+                          "You need to ensure that when you start Server1, App1 continues to run on Server2.<br><br>" +
+                          "<b>Solution:</b> You pause the Server1 node in Cluster1 and then start Server1.<br><br>" +
+                          "Does this meet the goal?",
+                options: [
+                    "A. Yes",
+                    "B. No"
+                ],
+                correctAnswerIndex: 1,
+                explanation: "✅ <b>Explanation:</b><br><b>B. No</b> is correct.<br><br><b>เหตุผล:</b> การสั่ง Pause โหนด (Server1) ไม่ใช่วิธีมาตรฐานในการจัดการลำดับความสำคัญของแอปพลิเคชัน (Preferred Owners) วิธีแก้ที่ถูกต้องคือต้องไปจัดการตั้งค่าที่แท็บ General เพื่อปรับลำดับ Preferred Owners แทนครับ"
+            },
+            // ==========================================
+            // Question 15 (Failback Scenario 2)
+            // ==========================================
+            {
+                question: "You have a failover cluster named Cluster1 that hosts an application named App1.<br>" +
+                          "The General tab in App1 Properties is shown in the General exhibit.<br>" +
+                          "" +
+                          "<div style='border: 1px solid #ccc; padding: 10px; background: #fff; border-radius: 5px; margin-bottom: 15px; text-align: center;'>" +
+                          "  <div style='font-weight: bold; margin-bottom: 10px; text-align: left; border-bottom: 1px solid #eee; padding-bottom: 5px;'>General Exhibit</div>" +
+                          "  <img src='images2/Q15-1.jpg' style='width: 50%; max-width: 500px; border: 1px solid #eee;'>" +
+                          "</div>" +
+                          "The Failover tab in App1 Properties is shown in the Failover exhibit.<br>" +
+                          "" +
+                          "<div style='border: 1px solid #ccc; padding: 10px; background: #fff; border-radius: 5px; margin-bottom: 15px; text-align: center;'>" +
+                          "  <div style='font-weight: bold; margin-bottom: 10px; text-align: left; border-bottom: 1px solid #eee; padding-bottom: 5px;'>Failover Exhibit</div>" +
+                          "  <img src='images2/Q15-2.jpg' style='width: 50%; max-width: 500px; border: 1px solid #eee;'>" +
+                          "</div>" +
+                          "Server1 shuts down unexpectedly.<br>" +
+                          "You need to ensure that when you start Server1, App1 continues to run on Server2.<br><br>" +
+                          "<b>Solution:</b> From the General settings, you increase the priority of Server2 in the Preferred Owners list.<br><br>" +
+                          "Does this meet the goal?",
+                options: [
+                    "A. Yes",
+                    "B. No"
+                ],
+                correctAnswerIndex: 0,
+                explanation: "✅ <b>Explanation:</b><br><b>A. Yes</b> is correct.<br><br><b>เหตุผล:</b> การปรับ Priority (เลื่อน Server2 ขึ้นไปเป็นอันดับ 1 ในรายการ Preferred Owners) จะทำให้ Server2 กลายเป็น 'บ้านเกิดใหม่' ของ App1 ดังนั้นเมื่อ Server1 กลับมาออนไลน์ ระบบก็จะไม่สนใจย้าย App กลับไปหา Server1 อีกต่อไปครับ"
+            },
+            // ==========================================
+            // Question 16 (S2D Storage Pool View WAC)
+            // ==========================================
+            {
+                question: "Your company uses Storage Spaces Direct.<br><br>" +
+                          "You need to view the available storage in a Storage Space Direct storage pool.<br><br>" +
+                          "What should you use?",
+                options: [
+                    "A. System Configuration",
+                    "B. Resource Monitor",
+                    "C. the Get-StorageFileServer cmdlet",
+                    "D. Windows Admin Center"
+                ],
+                correctAnswerIndex: 3,
+                explanation: "✅ <b>Explanation:</b><br><b>D. Windows Admin Center</b> is correct.<br><br><b>เหตุผล:</b> Windows Admin Center (WAC) เป็นเครื่องมือแบบ Web-based ตัวใหม่ของ Microsoft ที่ถูกออกแบบมาให้บริหารจัดการ Storage Spaces Direct (S2D) และ Hyper-Converged Infrastructure ได้อย่างสมบูรณ์แบบและเห็นภาพรวมของ Pool ได้ง่ายที่สุดครับ"
+            },
+            // ==========================================
+            // Question 17 (S2D Storage Pool View FCM)
+            // ==========================================
+            {
+                question: "Your company uses Storage Spaces Direct.<br><br>" +
+                          "You need to view the available storage in a Storage Space Direct storage pool.<br><br>" +
+                          "What should you use?",
+                options: [
+                    "A. the Get-StorageSubsystem cmdlet",
+                    "B. File Server Resource Manager (FSRM)",
+                    "C. Disk Management",
+                    "D. Failover Cluster Manager"
+                ],
+                correctAnswerIndex: 3,
+                explanation: "✅ <b>Explanation:</b><br><b>D. Failover Cluster Manager</b> is correct.<br><br><b>เหตุผล:</b> เนื่องจาก Storage Spaces Direct อาศัยการทำงานอยู่บน Failover Cluster เป็นพื้นฐาน เราจึงสามารถใช้ <b>Failover Cluster Manager</b> (ในหมวด Storage -> Pools) เพื่อเข้าไปดูความจุและสถานะของ Storage Pool ได้ครับ"
+            },
+            // ==========================================
+            // Question 18 (S2D RDMA Network)
+            // ==========================================
+            {
+                question: "Your network contains an Active Directory Domain Services (AD DS) forest.<br>" +
+                          "You need to deploy a Storage Spaces Direct converged infrastructure. The solution must meet the following requirements:<br>" +
+                          "<ul><li>Use an Ethernet fabric.</li><li>Eliminate the need for Data Center Bridging (DCB).</li></ul>" +
+                          "Which Remote Direct Memory Access (RDMA) networking technology should you implement?",
+                options: [
+                    "A. InfiniBand",
+                    "B. RoCEv2",
+                    "C. iWARP",
+                    "D. RoCEv1"
+                ],
+                correctAnswerIndex: 2,
+                explanation: "✅ <b>Explanation:</b><br><b>C. iWARP</b> is correct.<br><br><b>เหตุผล:</b> การ์ดเน็ตเวิร์กที่รองรับ RDMA จะมีสองค่ายหลักๆ คือ RoCE และ iWARP<br>• <b>RoCE (v1, v2):</b> ต้องการการปรับจูนเน็ตเวิร์ก Switch แบบพิเศษที่เรียกว่า <b>DCB (Data Center Bridging)</b> เพื่อให้ส่งข้อมูลได้เสถียร<br>• <b>iWARP:</b> เป็นเทคโนโลยีที่อาศัยโปรโตคอล TCP/IP ธรรมดา ทำให้สามารถเสียบใช้งานบน Ethernet Switch ทั่วไปได้ทันที <b>โดยไม่จำเป็นต้องใช้ DCB</b> ครับ"
+            },
+            // ==========================================
+            // Question 19 (Cluster Fault Domain & Failover)
+            // ==========================================
+            {
+                type: "hotspot",
+                question: "HOTSPOT - <br>You have a Windows Server failover cluster named Cluster1 that has a cloud witness and the nodes shown in the following table.<br><br>" +
+                          "<table class='info-table'><tr><th>Name</th><th>Windows Server role</th><th>Assigned vote</th></tr>" +
+                          "<tr><td>Node1</td><td>File Server, DFS Namespace Server</td><td>1</td></tr>" +
+                          "<tr><td>Node2</td><td>DFS Namespace Server</td><td>1</td></tr>" +
+                          "<tr><td>Node3</td><td>File Server, DFS Namespaces Server</td><td>1</td></tr>" +
+                          "<tr><td>Node4</td><td>File Server</td><td>0</td></tr></table><br>" +
+                          "Cluster1 has the roles shown in the following table.<br><br>" +
+                          "<table class='info-table'><tr><th>Name</th><th>Cluster role</th></tr>" +
+                          "<tr><td>FS1</td><td>File Server for general use</td></tr>" +
+                          "<tr><td>DFS1</td><td>DFS Namespace Server</td></tr></table><br>" +
+                          "Cluster1 has the following configuration.<br>" +
+                          "<div style='font-family: monospace; background: #f4f4f4; padding: 15px; border-radius: 5px; margin-bottom: 15px; border: 1px solid #ccc;'>" +
+                          "PS C:\\> Get-ClusterFaultDomain<br>" +
+                          "Name &nbsp;&nbsp;&nbsp;Type &nbsp;ParentName &nbsp;ChildrenNames &nbsp;Location<br>" +
+                          "---- &nbsp;&nbsp;&nbsp;---- &nbsp;---------- &nbsp;------------- &nbsp;--------<br>" +
+                          "Site1 &nbsp;&nbsp;Site &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{Node1, Node2}<br>" +
+                          "Site2 &nbsp;&nbsp;Site &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{Node3, Node4}<br>" +
+                          "Node1 &nbsp;&nbsp;Node &nbsp;Site1<br>" +
+                          "Node2 &nbsp;&nbsp;Node &nbsp;Site1<br>" +
+                          "Node3 &nbsp;&nbsp;Node &nbsp;Site2<br>" +
+                          "Node4 &nbsp;&nbsp;Node &nbsp;Site2<br>" +
+                          "</div>" +
+                          "For each of the following statements, select Yes if the statement is true. Otherwise, select No.",
+                statements: [
+                    { text: "If FS1 runs on Node3, and Node3 fails, FS1 will fail over to Node4 automatically.", correctAnswer: "Yes" },
+                    { text: "If DFS1 runs on Node2, and Node2 fails, DFS1 will fail over to Node3 automatically.", correctAnswer: "Yes" },
+                    { text: "If Site2 fails, DFS1 will remain available.", correctAnswer: "Yes" }
+                ],
+                explanation: "✅ <b>Explanation:</b><br>" +
+                             "<b>1. Yes:</b> Node4 มีการติดตั้ง Role 'File Server' ไว้ (สังเกตจากตารางแรก) ดังนั้น Role FS1 สามารถย้ายมาทำงานที่ Node4 ได้ครับ<br>" +
+                             "<b>2. Yes:</b> Node3 มีการติดตั้ง Role 'DFS Namespace Server' ไว้ ดังนั้น Role DFS1 ที่พังจาก Node2 สามารถข้ามไซต์มาย้ายลงที่ Node3 ได้ครับ<br>" +
+                             "<b>3. Yes:</b> Cluster นี้มีโหวตทั้งหมด 4 เสียง (Node1, Node2, Node3, Cloud Witness) *Node4 โหวตเป็น 0* <br>ถ้า Site2 (Node3, Node4) พัง ระบบจะเสียไปแค่ 1 โหวต (จาก Node3) แต่ฝั่ง Site1 (2 โหวต) + Cloud Witness (1 โหวต) ยังเหลือโหวตรวมกัน 3 เสียง (เกินครึ่ง) คลัสเตอร์จึงไม่ล่ม และ DFS1 ยังรันต่อได้ที่ Site1 ครับ"
+            },
+            // ==========================================
+            // Question 20 (Failback Scenario 3 - Max Failures)
+            // ==========================================
+            {
+                question: "Note: This question is part of a series of questions that present the same scenario.<br><br>" +
+                          "You have a failover cluster named Cluster1 that hosts an application named App1.<br>" +
+                          "The General tab in App1 Properties is shown in the General exhibit.<br>" +
+                          "" +
+                          "<div style='border: 1px solid #ccc; padding: 10px; background: #fff; border-radius: 5px; margin-bottom: 15px; text-align: center;'>" +
+                          "  <div style='font-weight: bold; margin-bottom: 10px; text-align: left; border-bottom: 1px solid #eee; padding-bottom: 5px;'>General Exhibit</div>" +
+                          "  <img src='images2/Q20-1.jpg' style='width: 50%; max-width: 500px; border: 1px solid #eee;'>" +
+                          "</div>" +
+                          "The Failover tab in App1 Properties is shown in the Failover exhibit.<br>" +
+                          "" +
+                          "<div style='border: 1px solid #ccc; padding: 10px; background: #fff; border-radius: 5px; margin-bottom: 15px; text-align: center;'>" +
+                          "  <div style='font-weight: bold; margin-bottom: 10px; text-align: left; border-bottom: 1px solid #eee; padding-bottom: 5px;'>Failover Exhibit</div>" +
+                          "  <img src='images2/Q20-2.jpg' style='width: 50%; max-width: 500px; border: 1px solid #eee;'>" +
+                          "</div>" +
+                          "Server2 shuts down unexpectedly.<br>" +
+                          "You need to ensure that when you start Server2, App1 continues to run on Server2.<br><br>" +
+                          "<b>Solution:</b> You increase Maximum failures in the specified period for the App1 cluster role.<br><br>" +
+                          "Does this meet the goal?",
+                options: [
+                    "A. Yes",
+                    "B. No"
+                ],
+                correctAnswerIndex: 1,
+                explanation: "✅ <b>Explanation:</b><br><b>B. No</b> is correct.<br><br><b>เหตุผล:</b> การปรับค่า Maximum Failures มีไว้ควบคุมว่า ถ้าระบบแครชติดๆ กันกี่ครั้งถึงจะปล่อยให้มัน Failed State (ล่มไปเลย) ไม่ได้มีส่วนเกี่ยวข้องใดๆ กับการควบคุมการย้ายกลับ (Failback) เมื่อเครื่องหลักกลับมาออนไลน์ครับ"
+            },
+            // ==========================================
+            // Question 21 (Failback Scenario 4 - Duplicate Priority)
+            // ==========================================
+            {
+                question: "Note: This question is part of a series of questions that present the same scenario.<br><br>" +
+                          "You have a failover cluster named Cluster1 that hosts an application named App1.<br>" +
+                          "The General tab in App1 Properties is shown in the General exhibit.<br>" +
+                          "" +
+                          "<div style='border: 1px solid #ccc; padding: 10px; background: #fff; border-radius: 5px; margin-bottom: 15px; text-align: center;'>" +
+                          "  <div style='font-weight: bold; margin-bottom: 10px; text-align: left; border-bottom: 1px solid #eee; padding-bottom: 5px;'>General Exhibit</div>" +
+                          "  <img src='images2/Q21-1.jpg' style='width: 100%; max-width: 500px; border: 1px solid #eee;'>" +
+                          "</div>" +
+                          "The Failover tab in App1 Properties is shown in the Failover exhibit.<br>" +
+                          "" +
+                          "<div style='border: 1px solid #ccc; padding: 10px; background: #fff; border-radius: 5px; margin-bottom: 15px; text-align: center;'>" +
+                          "  <div style='font-weight: bold; margin-bottom: 10px; text-align: left; border-bottom: 1px solid #eee; padding-bottom: 5px;'>Failover Exhibit</div>" +
+                          "  <img src='images2/Q21-2.jpg' style='width: 100%; max-width: 500px; border: 1px solid #eee;'>" +
+                          "</div>" +
+                          "Server1 shuts down unexpectedly.<br>" +
+                          "You need to ensure that when you start Server1, App1 continues to run on Server2.<br><br>" +
+                          "<b>Solution:</b> From the General settings, you increase the priority of Server2 in the Preferred Owners list.<br><br>" +
+                          "Does this meet the goal?",
+                options: [
+                    "A. Yes",
+                    "B. No"
+                ],
+                correctAnswerIndex: 0,
+                explanation: "✅ <b>Explanation:</b><br><b>A. Yes</b> is correct.<br><br><b>เหตุผล:</b> (คำถามซ้ำกับข้อ 15) การเลื่อน Priority ให้ Server2 ขึ้นไปอยู่อันดับแรกสุด จะทำให้ Server2 กลายเป็นบ้านใหม่ของ App1 เมื่อ Server1 กลับมาออนไลน์ ระบบก็จะไม่สนใจย้าย App กลับไปที่ Server1 อีกครับ"
+            },
+            // ==========================================
+            // Question 22 (Failback Scenario 5 - Prevent Failback Error Logic)
+            // ==========================================
+            {
+                question: "Note: This question is part of a series of questions that present the same scenario.<br><br>" +
+                          "You have a failover cluster named Cluster1 that hosts an application named App1.<br>" +
+                          "The General tab in App1 Properties is shown in the General exhibit.<br>" +
+                          "" +
+                          "<div style='border: 1px solid #ccc; padding: 10px; background: #fff; border-radius: 5px; margin-bottom: 15px; text-align: center;'>" +
+                          "  <div style='font-weight: bold; margin-bottom: 10px; text-align: left; border-bottom: 1px solid #eee; padding-bottom: 5px;'>General Exhibit</div>" +
+                          "  <img src='images2/Q22-1.jpg' style='width: 100%; max-width: 500px; border: 1px solid #eee;'>" +
+                          "</div>" +
+                          "The Failover tab in App1 Properties is shown in the Failover exhibit.<br>" +
+                          "" +
+                          "<div style='border: 1px solid #ccc; padding: 10px; background: #fff; border-radius: 5px; margin-bottom: 15px; text-align: center;'>" +
+                          "  <div style='font-weight: bold; margin-bottom: 10px; text-align: left; border-bottom: 1px solid #eee; padding-bottom: 5px;'>Failover Exhibit</div>" +
+                          "  <img src='images2/Q22-2.jpg' style='width: 100%; max-width: 500px; border: 1px solid #eee;'>" +
+                          "</div>" +
+                          "Server1 shuts down unexpectedly.<br>" +
+                          "You need to ensure that when you start Server1, App1 continues to run on Server2.<br><br>" +
+                          "<b>Solution:</b> From the Failover settings, you select Prevent failback.<br><br>" +
+                          "Does this meet the goal?",
+                options: [
+                    "A. Yes",
+                    "B. No"
+                ],
+                correctAnswerIndex: 1,
+                explanation: "✅ <b>Explanation:</b><br><b>B. No</b> is correct.<br><br><b>🚨 จุดหลอกของข้อนี้:</b> หากเราสังเกตที่รูป General Exhibit จะเห็นว่า <b>ไม่มีการติ๊กหน้าชื่อ Server1 และ Server2 เลย</b> (หมายความว่า Role นี้ไม่มี Preferred Owner)<br><br>กฎของ Cluster คือ <i>ถ้าไม่มี Preferred Owner ระบบจะไม่มีการทำ Failback อยู่แล้ว</i> ดังนั้น การที่เราไปคลิกตั้งค่า 'Prevent failback' จึงเป็นการกระทำที่ไม่มีความหมาย (No Effect) และไม่ใช่จุดที่ทำให้เป้าหมายสำเร็จครับ (เป้าหมายมันสำเร็จตั้งแต่แรกเพราะเราไม่ได้ตั้ง Preferred Owner ไว้) ข้อสอบจึงเฉลยว่า No ครับ"
+            },
+            // ==========================================
+            // Question 23 (AD Replication Matrix)
+            // ==========================================
+            {
+                type: "hotspot",
+                question: "HOTSPOT - <br>You have an on-premises Active Directory Domain Services (AD DS) domain that contains the resources shown in the following table.<br><br>" +
+                          "<table class='info-table'><tr><th>Name</th><th>Type</th><th>Description</th></tr>" +
+                          "<tr><td>User1</td><td>User</td><td>Is a member of Group1</td></tr>" +
+                          "<tr><td>User2</td><td>User</td><td>Has a phone number of 111-111</td></tr>" +
+                          "<tr><td>User3</td><td>User</td><td>Is in the Users container</td></tr>" +
+                          "<tr><td>Group1</td><td>Group</td><td>None</td></tr>" +
+                          "<tr><td>OU1</td><td>Organizational unit (OU)</td><td>Is empty</td></tr></table><br>" +
+                          "The domain contains the domain controllers shown in the following table.<br><br>" +
+                          "<table class='info-table'><tr><th>Name</th><th>Site</th></tr>" +
+                          "<tr><td>DC1</td><td>Site1</td></tr>" +
+                          "<tr><td>DC2</td><td>Site2</td></tr></table><br>" +
+                          "You configure a site link between Site1 and Site2 and set the replication interval to 20 minutes.<br>" +
+                          "At 10:00 AM, connectivity between Site1 and Site2 fails.<br>" +
+                          "Administrators perform the actions shown in the following table.<br><br>" +
+                          "<table class='info-table'><tr><th>Time</th><th>Performed on</th><th>Description</th></tr>" +
+                          "<tr><td>10:05 AM</td><td>DC1</td><td>Move User3 to OU1.</td></tr>" +
+                          "<tr><td>10:07 AM</td><td>DC2</td><td>Remove User1 from Group1.</td></tr>" +
+                          "<tr><td>10:10 AM</td><td>DC1</td><td>Change the phone number of User2 to 222-222.</td></tr>" +
+                          "<tr><td>10:11 AM</td><td>DC1</td><td>Change the phone number of User2 to 333-333.</td></tr>" +
+                          "<tr><td>10:12 AM</td><td>DC1</td><td>Add User2 to Group1.</td></tr>" +
+                          "<tr><td>10:20 AM</td><td>DC2</td><td>Delete OU1.</td></tr>" +
+                          "<tr><td>10:25 AM</td><td>DC2</td><td>Change the phone number of User2 to 444-444.</td></tr></table><br>" +
+                          "At 10:30 AM, connectivity between Site1 and Site2 is restored.<br><br>" +
+                          "For each of the following statements, select Yes if the statement is true. Otherwise, select No.",
+                statements: [
+                    { text: "At 11:30 AM, User1 and User2 are members of Group1.", correctAnswer: "No" },
+                    { text: "At 11:30 AM, the phone number of User2 is 333-333.", correctAnswer: "No" },
+                    { text: "At 11:30 AM, User3 is deleted.", correctAnswer: "Yes" }
+                ],
+                explanation: "✅ <b>Explanation:</b><br>" +
+                             "<b>1. No:</b> DC2 เอา User1 ออก, DC1 เอา User2 เข้า (AD สมัยใหม่ใช้ฟีเจอร์ LVR ทำให้แก้ไขสมาชิกกลุ่มแยกเป็นรายคนได้โดยไม่ทับกัน) ดังนั้นผลลัพธ์คือ Group1 จะมีแค่ User2 คนเดียว (User1 หายไปแล้ว)<br>" +
+                             "<b>2. No:</b> การแก้ Attribute ตัวเดียวกัน (เบอร์โทร User2) จะใช้กฎ <b>Last Writer Wins (ใครแก้คนสุดท้ายชนะ)</b> DC2 แก้เป็น 444-444 ตอน 10:25 AM จึงเป็นผู้ชนะ (เบอร์จะไม่ใช่ 333-333)<br>" +
+                             "<b>3. Yes:</b> User3 ถูกย้ายไปอยู่ใต้ OU1 โดย DC1 แต่ต่อมา OU1 ถูกลบหายไปทั้งก้อนโดย DC2 เมื่อเรพลิเคตกัน ระบบจะมองว่า Object ลูก (User3) สูญเสีย Parent container ไป จึงทำให้ User3 ถูกลบ (หรือย้ายลงถังขยะ) ไปด้วยครับ"
+            },
+            // ==========================================
+            // Question 24 (Cluster Role Policies Matrix)
+            // ==========================================
+            {
+                type: "hotspot",
+                question: "HOTSPOT - <br>You have a Windows Server Failover Cluster (WSFC) that has the following configurations:<br>" +
+                          "<ul><li>Name: App1</li><li>Owner node: Node3</li><li>Type: Generic Application</li></ul><br>" +
+                          "The General settings for App1 are shown in the General exhibit.<br>" +
+                          "" +
+                          "<div style='border: 1px solid #ccc; padding: 10px; background: #fff; border-radius: 5px; margin-bottom: 15px; text-align: center;'>" +
+                          "  <div style='font-weight: bold; margin-bottom: 10px; text-align: left; border-bottom: 1px solid #eee; padding-bottom: 5px;'>General Exhibit</div>" +
+                          "  <img src='images2/Q24-1.jpg' style='width: 100%; max-width: 500px; border: 1px solid #eee;'>" +
+                          "</div>" +
+                          "The Failover settings for App1 are shown in the Failover exhibit.<br>" +
+                          "" +
+                          "<div style='border: 1px solid #ccc; padding: 10px; background: #fff; border-radius: 5px; margin-bottom: 15px; text-align: center;'>" +
+                          "  <div style='font-weight: bold; margin-bottom: 10px; text-align: left; border-bottom: 1px solid #eee; padding-bottom: 5px;'>Failover Exhibit</div>" +
+                          "  <img src='images2/Q24-2.jpg' style='width: 100%; max-width: 500px; border: 1px solid #eee;'>" +
+                          "</div>" +
+                          "The Advanced Policies settings for App1 are shown in the Advanced Policies exhibit.<br>" +
+                          "" +
+                          "<div style='border: 1px solid #ccc; padding: 10px; background: #fff; border-radius: 5px; margin-bottom: 15px; text-align: center;'>" +
+                          "  <div style='font-weight: bold; margin-bottom: 10px; text-align: left; border-bottom: 1px solid #eee; padding-bottom: 5px;'>Advanced Policies Exhibit</div>" +
+                          "  <img src='images2/Q24-3.jpg' style='width: 100%; max-width: 500px; border: 1px solid #eee;'>" +
+                          "</div><br>" +
+                          "For each of the following statements, select Yes if the statement is true. Otherwise, select No.",
+                statements: [
+                    { text: "You can move App1 to Node4 manually.", correctAnswer: "Yes" },
+                    { text: "If Node3 fails, App1 will fail over to Node2 automatically.", correctAnswer: "Yes" },
+                    { text: "If App1 automatically fails over from Node3, App1 will fail back to Node3 automatically after Node3 is repaired.", correctAnswer: "No" }
+                ],
+                explanation: "✅ <b>Explanation:</b><br>" +
+                             "<b>1. Yes:</b> ในแท็บ Advanced Policies เครื่อง Node4 ถูกติ๊กเป็น 'Possible Owners' เอาไว้ หมายความว่ามีสิทธิ์รับ Role ได้ ดังนั้นแอดมินจึงสามารถสั่งย้ายแมนนวลไปหา Node4 ได้ครับ<br>" +
+                             "<b>2. Yes:</b> หาก Node3 พัง ระบบจะมองหา Possible Owner คนถัดไปที่เป็น 'Preferred Owner' ก่อน ซึ่ง Node2 มีชื่อติ๊กอยู่ใน Preferred Owner และ Possible Owner ด้วย มันจึงย้ายไป Node2 ให้อัตโนมัติ<br>" +
+                             "<b>3. No:</b> เมื่อ Node3 ซ่อมเสร็จ ระบบ<b>จะไม่ย้าย App1 กลับไปที่ Node3</b> เพราะ Node3 <b>ไม่ได้ถูกติ๊ก</b> ให้อยู่ในลิสต์ Preferred Owners ในหน้า General Tab ครับ (ระบบจะ Failback เฉพาะเครื่องที่ตั้งเป็น Preferred ไว้เท่านั้น)"
+            },
+            // ==========================================
+            // Question 25 (Storage Space Direct View Pool)
+            // ==========================================
+            {
+                question: "Your company uses Storage Spaces Direct.<br><br>" +
+                          "You need to view the available storage in a Storage Space Direct storage pool.<br><br>" +
+                          "What should you use?",
+                options: [
+                    "A. Disk Management",
+                    "B. Failover Cluster Manager",
+                    "C. the Get-StorageFileServer cmdlet",
+                    "D. System Configuration"
+                ],
+                correctAnswerIndex: 1,
+                explanation: "✅ <b>Explanation:</b><br><b>B. Failover Cluster Manager</b> is correct.<br><br><b>เหตุผล:</b> หากไม่มี Windows Admin Center ในตัวเลือก เครื่องมือคลาสสิกที่ดีที่สุดในการดูภาพรวมความจุของ Storage Pool ในระบบ Storage Spaces Direct (S2D) ก็คือ <b>Failover Cluster Manager</b> ครับ (ไปที่เมนู Storage -> Pools) <i>ส่วน Disk Management ทั่วไปจะมองไม่เห็นภาพรวมของ Pool แบบ Cluster ครับ</i>"
+            },
+// ==========================================
+            // Question 26 (Cluster VM Monitoring)
+            // ==========================================
+            {
+                type: "dropdown",
+                question: "HOTSPOT - <br>You have a Hyper-V failover cluster named Cluster1. Cluster1 contains a virtual machine named VM1 that runs Windows Server. VM1 contains a Windows service named Service1.<br><br>" +
+                          "You need to ensure that Cluster1 performs a recovery action if Service1 fails.<br><br>" +
+                          "What should you do? To answer, select the appropriate options in the answer area.",
+                dropdowns: [
+                    { 
+                        id: "q26-dd1", 
+                        label: "Configure monitoring for VM1 by using:", 
+                        options: ["Failover Cluster Manager", "Hyper-V Manager", "Performance Monitor", "Windows Admin Center"], 
+                        correctAnswer: "Failover Cluster Manager" 
+                    },
+                    { 
+                        id: "q26-dd2", 
+                        label: "For Service1, set the Recovery settings to:", 
+                        options: ["Restart the Computer", "Restart the Service", "Run a Program", "Take No Action"], 
+                        correctAnswer: "Take No Action" 
+                    }
+                ],
+                explanation: "✅ <b>Explanation:</b><br>" +
+                             "<b>1. Configure monitoring: Failover Cluster Manager</b><br>ฟีเจอร์ VM Monitoring (การให้ Cluster คอยจับตาดู Service ข้างใน VM ว่ายังทำงานปกติไหม) ต้องไปตั้งค่าคลิกขวาที่ชื่อ VM ในหน้า <b>Failover Cluster Manager</b> -> More Actions -> Configure Role Monitoring ครับ<br><br>" +
+                             "<b>2. Recovery settings: Take No Action</b><br>กฎสำคัญของ VM Monitoring คือ <b>ต้องให้ Cluster เป็นคนจัดการ Action แทน Service ตัวเอง</b> ดังนั้นในฝั่งของตัว VM (ไปที่ properties ของ Service1) เราต้องตั้ง Recovery tab เป็น <b>Take No Action</b> เพื่อป้องกันไม่ให้ Service พยายาม restart ตัวเองแข่งกับ Cluster ครับ (ถ้าตั้งซ้อนกัน Cluster จะสับสน)"
+            },
+            // ==========================================
+            // Question 27 (S2D In-place Upgrade)
+            // ==========================================
+            {
+                type: "dragdrop",
+                question: "DRAG DROP - <br>You have a Windows Server 2019 Storage Spaces Direct cluster named Cluster1. Cluster1 has four nodes that contain virtual machines.<br><br>" +
+                          "You need to perform an in-place upgrade of Cluster1 to Windows Server 2022. The solution must ensure that the virtual machines are always available during the upgrade.<br><br>" +
+                          "In which order should you perform the actions? To answer, move all actions from the list of actions to the answer area and arrange them in the correct order.",
+                draggables: [
+                    "Remove the node from storage maintenance mode.",
+                    "Upgrade the node to Windows Server 2022.",
+                    "Pause and drain the cluster node.",
+                    "Place the node in storage maintenance mode.",
+                    "Resume the cluster node."
+                ],
+                correctOrder: [
+                    "Pause and drain the cluster node.",
+                    "Place the node in storage maintenance mode.",
+                    "Upgrade the node to Windows Server 2022.",
+                    "Remove the node from storage maintenance mode.",
+                    "Resume the cluster node."
+                ],
+                explanation: "✅ <b>Explanation:</b><br>" +
+                             "ลำดับการอัปเกรดโหนดใน S2D Cluster มีดังนี้ (ทำทีละโหนดจนครบ):<br>" +
+                             "<b>1. Pause and drain:</b> สั่งหยุดโหนดชั่วคราว และย้าย VMs ออกไปโหนดอื่นอย่างปลอดภัย<br>" +
+                             "<b>2. Place in storage maintenance mode:</b> สั่งให้ระบบ Storage รู้ว่าดิสก์เครื่องนี้กำลังจะดับนะ ไม่ต้องแจ้งเตือนพัง<br>" +
+                             "<b>3. Upgrade:</b> ทำการติดตั้งอัปเกรด Windows Server 2022 (ขั้นตอนนี้โหนดจะรีสตาร์ท)<br>" +
+                             "<b>4. Remove from storage maintenance:</b> ออกจากโหมดซ่อมบำรุง ให้ดิสก์เริ่ม Resync ข้อมูลกลับมา<br>" +
+                             "<b>5. Resume:</b> สั่งเปิดโหนดให้กลับมารับงาน (VMs) ตามปกติ"
+            },
+            // ==========================================
+            // Question 28 (Clustered File Server Storage Types - แก้ไขเป็น Drag & Drop)
+            // ==========================================
+            {
+                type: "dragdrop",
+                question: "DRAG DROP - <br>Your on-premises network contains an Active Directory Domain Services (AD DS) domain.<br>You plan to implement a failover cluster to enable a highly available file server.<br><br>" +
+                          "You are evaluating the following clustered file servers:<br>" +
+                          "<ul><li>File server for general use</li><li>Scale-out file server</li></ul>" +
+                          "Which type of storage should you use for each file server? To answer, drag the appropriate storage types to the correct file servers.",
+                draggables: [
+                    "A Cluster Shared Volume (CSV)",
+                    "A local data volume",
+                    "A logical unit number (LUN)",
+                    "A Network Attached Storage (NAS) volume"
+                ],
+                targets: [
+                    { 
+                        label: "File server for general use:", 
+                        expected: ["A logical unit number (LUN)"] 
+                    },
+                    { 
+                        label: "Scale-out file server:", 
+                        expected: ["A Cluster Shared Volume (CSV)"] 
+                    }
+                ],
+                explanation: "✅ <b>Explanation:</b><br>" +
+                             "<b>1. File server for general use = LUN</b><br>เป็น File Server แบบดั้งเดิม (Active-Passive) จะรองรับเฉพาะดิสก์ที่แชร์ร่วมกันในรูปแบบ <b>Shared Disk (LUN จาก SAN)</b> เท่านั้น ไม่รองรับ CSV ครับ<br><br>" +
+                             "<b>2. Scale-out file server (SOFS) = CSV</b><br>เป็น File Server ยุคใหม่ (Active-Active) ที่ทุกโหนดอ่านเขียนไฟล์ได้พร้อมกัน จึงจำเป็นต้องใช้ <b>Cluster Shared Volume (CSV)</b> เป็นระบบไฟล์เบื้องหลังเท่านั้นครับ"
+            },
+            // ==========================================
+            // Question 29 (Failback Scenario - Same as Q14)
+            // ==========================================
+            {
+                question: "Note: This question is part of a series of questions that present the same scenario.<br><br>" +
+                          "You have a failover cluster named Cluster1 that hosts an application named App1.<br>" +
+                          "The General tab in App1 Properties is shown in the General exhibit.<br>" +
+                          "<!-- รูป General -->" +
+                          "<div style='border: 1px solid #ccc; padding: 10px; background: #fff; border-radius: 5px; margin-bottom: 15px; text-align: center;'>" +
+                          "  <div style='font-weight: bold; margin-bottom: 10px; text-align: left; border-bottom: 1px solid #eee; padding-bottom: 5px;'>General Exhibit</div>" +
+                          "  <img src='images2/Q29-1.jpg' style='width: 100%; max-width: 500px; border: 1px solid #eee;'>" +
+                          "</div>" +
+                          "The Failover tab in App1 Properties is shown in the Failover exhibit.<br>" +
+                          "<!-- รูป Failover -->" +
+                          "<div style='border: 1px solid #ccc; padding: 10px; background: #fff; border-radius: 5px; margin-bottom: 15px; text-align: center;'>" +
+                          "  <div style='font-weight: bold; margin-bottom: 10px; text-align: left; border-bottom: 1px solid #eee; padding-bottom: 5px;'>Failover Exhibit</div>" +
+                          "  <img src='images2/Q29-2.jpg' style='width: 100%; max-width: 500px; border: 1px solid #eee;'>" +
+                          "</div>" +
+                          "Server2 shuts down unexpectedly.<br>" +
+                          "You need to ensure that when you start Server2, App1 continues to run on Server2.<br><br>" +
+                          "<b>Solution:</b> You pause the Server1 node in Cluster1 and then start Server1.<br><br>" +
+                          "Does this meet the goal?",
+                options: [
+                    "A. Yes",
+                    "B. No"
+                ],
+                correctAnswerIndex: 1,
+                explanation: "✅ <b>Explanation:</b><br><b>B. No</b> is correct.<br><br><b>เหตุผล:</b> (คำถามซ้ำกับข้อ 14) การสั่ง Pause โหนด ไม่ใช่วิธีมาตรฐานในการจัดการลำดับความสำคัญของแอปพลิเคชัน (Preferred Owners) ครับ"
+            },
+            // ==========================================
+            // Question 30 (S2D for Hyper-V Cluster - แก้ไขเป็นข้อธรรมดาช้อยส์เดียว)
+            // ==========================================
+            {
+                question: "Your network contains an Active Directory Domain Services (AD DS) domain. The domain contains two Windows Server Failover Cluster (WSFC) instances named Cluster1 and Cluster2. Cluster1 hosts Hyper-V virtual machines. Cluster2 does NOT have any high availability roles configured.<br><br>" +
+                          "You need to create a Storage Spaces Direct cluster in Cluster2 that will store the virtual machine hard disk files for Cluster1.<br><br>" +
+                          "Which role should you configure for Cluster2?",
+                options: [
+                    "A. Virtual Machine",
+                    "B. iSCSI Target Server",
+                    "C. Hyper-V Replica Broker",
+                    "D. File Server"
+                ],
+                correctAnswerIndex: 3,
+                explanation: "✅ <b>Explanation:</b><br><b>D. File Server</b> is correct.<br><br><b>เหตุผล:</b> สถาปัตยกรรมแบบนี้เรียกว่า <b>Disaggregated Storage Spaces Direct</b> (แยก Compute กับ Storage คนละคลัสเตอร์กัน) คลัสเตอร์ฝั่ง Compute (Cluster1) จะรัน Hyper-V ส่วนคลัสเตอร์ฝั่ง Storage (Cluster2) จะนำดิสก์ S2D มาแชร์ผ่านเครือข่าย โดยการติดตั้ง Role <b>Scale-out File Server (SOFS)</b> เพื่อแชร์ไฟล์ vhdx ผ่านโปรโตคอล SMB3 ให้ Cluster1 เข้ามาใช้งานครับ"
+            },
+            // ==========================================
+            // Question 31 (VM Load Balancing)
+            // ==========================================
+            {
+                type: "hotspot",
+                question: "HOTSPOT - <br>You have a Hyper-V failover cluster named Cluster1 that contains two nodes named Node1 and Node2, and a Hyper-V host named Host1.<br>" +
+                          "You have the virtual machines shown in the following table.<br><br>" +
+                          "<table class='info-table'><tr><th>Name</th><th>Average host CPU usage</th><th>Host</th></tr>" +
+                          "<tr><td>VM1</td><td>20%</td><td>Node1</td></tr>" +
+                          "<tr><td>VM2</td><td>30%</td><td>Node1</td></tr>" +
+                          "<tr><td>VM3</td><td>25%</td><td>Node1</td></tr>" +
+                          "<tr><td>VM4</td><td>5%</td><td>Node1</td></tr>" +
+                          "<tr><td>VM5</td><td>60%</td><td>Node2</td></tr>" +
+                          "<tr><td>VM6</td><td>10%</td><td>Host1</td></tr></table><br>" +
+                          "The Balancer settings for Cluster1 are shown in the following exhibit.<br>" +
+                          "<!-- รูป Balancer -->" +
+                          "<div style='border: 1px solid #ccc; padding: 10px; background: #fff; border-radius: 5px; margin-bottom: 15px; text-align: center;'>" +
+                          "  <div style='font-weight: bold; margin-bottom: 10px; text-align: left; border-bottom: 1px solid #eee; padding-bottom: 5px;'>Balancer Exhibit</div>" +
+                          "  <img src='images2/Q31-1.jpg' style='width: 50%; max-width: 500px; border: 1px solid #eee;'>" +
+                          "</div>" +
+                          "For each of the following statements, select Yes if the statement is true. Otherwise, select No.",
+                statements: [
+                    { text: "If you add a new Hyper-V node to Cluster1, a virtual machine will migrate automatically to the new node.", correctAnswer: "Yes" },
+                    { text: "Within one hour of running the commands, a virtual machine from Node1 will migrate to Node2 automatically.", correctAnswer: "No" },
+                    { text: "If VM6 is deployed to Node1, one of the existing virtual machines will migrate to Node2 automatically.", correctAnswer: "No" }
+                ],
+                explanation: "✅ <b>Explanation:</b><br>" +
+                             "<b>วิเคราะห์การตั้งค่า:</b> ติ๊กถูกที่ 'Enable Automatic Balancing...' + เลือกโหมด <b>'Load balance to a node when it joins' (ทำงานเฉพาะตอนมีโหนดใหม่เข้ามาเติมในวง)</b> + ความไว (Aggressiveness) ระดับ Medium (โหลดเกิน 70% ถึงจะย้าย)<br><br>" +
+                             "<b>1. Yes:</b> ตามการตั้งค่า 'Load balance to a node when it joins' เมื่อมีโหนดใหม่เข้ามา Cluster จะทำการเกลี่ย VM (ย้าย VM บางตัว) ไปลงโหนดใหม่ให้อัตโนมัติครับ<br>" +
+                             "<b>2. No:</b> โหมดที่เลือกไว้ไม่ได้เป็น 'Always load balance' ดังนั้นถ้าโหนดยังอยู่เท่าเดิม (ไม่มีโหนดใหม่) มันจะไม่ออกแอคชั่นย้าย VM ตามรอบเวลาครับ<br>" +
+                             "<b>3. No:</b> ถ้าย้าย VM6 มาลง Node1 (เพิ่มโหลดอีก 10%) โหลดรวมของ Node1 จะกลายเป็น 20+30+25+5+10 = <b>90%</b> ซึ่งเกินเกณฑ์ 70% (Medium) ไปแล้ว <b>แต่!</b> ด้วยความที่มันไม่ได้ตั้งเป็น 'Always load balance' มันจึงไม่ทำงานตอนที่โหลดพุ่งครับ (ต้องมีโหนดใหม่เข้ามาเท่านั้นมันถึงจะยอมทำงาน)"
+            },
+            // ==========================================
+            // Question 32 (S2D Allocation Delimiting - Nested Resiliency)
+            // ==========================================
+            {
+                type: "dropdown",
+                question: "HOTSPOT - <br>Your network contains an Active Directory Domain Services (AD DS) domain.<br>You need to implement a Storage Spaces Direct cluster. The solution must ensure that the cluster supports delimiting the allocation of volumes.<br><br>" +
+                          "What is the minimum number of servers required, and which type of resiliency is required for the cluster volumes?",
+                dropdowns: [
+                    { 
+                        id: "q32-dd1", 
+                        label: "Minimum number of servers:", 
+                        options: ["5", "6", "8"], 
+                        correctAnswer: "6" 
+                    },
+                    { 
+                        id: "q32-dd2", 
+                        label: "Volume resiliency type:", 
+                        options: ["Mirror-accelerated parity only", "Three-way mirror only", "Three-way mirror or mirror-accelerated parity"], 
+                        correctAnswer: "Three-way mirror or mirror-accelerated parity" 
+                    }
+                ],
+                explanation: "✅ <b>Explanation:</b><br>" +
+                             "<b>1. Minimum number of servers: 6</b><br>ฟีเจอร์การตีกรอบแบ่งโควต้า (Delimiting the allocation of volumes / Nested Resiliency Fault Domains) ในระบบ S2D จะเริ่มรองรับการทำงานได้อย่างเต็มรูปแบบเมื่อคลัสเตอร์มีขนาดตั้งแต่ <b>6 โหนดขึ้นไป</b> เท่านั้นครับ<br><br>" +
+                             "<b>2. Volume resiliency type: Three-way mirror or mirror-accelerated parity</b><br>การสร้าง Volume ในระบบที่มีมากกว่า 4 โหนด สามารถใช้ได้ทั้งแบบ 3-way mirror (เร็วสุด เปลืองพื้นที่) หรือ Mirror-accelerated parity (ผสมผสานระหว่าง Mirror กับ Parity เพื่อประหยัดพื้นที่) ก็ได้ทั้งคู่ครับ"
+            },
+            // ==========================================
+            // Question 33 (Cluster Volume Letters)
+            // ==========================================
+            {
+                type: "dropdown",
+                question: "HOTSPOT - <br>You have a Windows Server Failover Cluster (WSFC) named Cluster1 that contains two nodes named Node1 and Node2.<br>The local disks for Node1 and Node2 are configured as shown in the Disk Management exhibit.<br>" +
+                          "<!-- รูป Disk Management -->" +
+                          "<div style='border: 1px solid #ccc; padding: 10px; background: #fff; border-radius: 5px; margin-bottom: 15px; text-align: center;'>" +
+                          "  <div style='font-weight: bold; margin-bottom: 10px; text-align: left; border-bottom: 1px solid #eee; padding-bottom: 5px;'>Disk Management Exhibit</div>" +
+                          "  <img src='images2/Q33-1.jpg' style='width: 70%; max-width: 500px; border: 1px solid #eee;'>" +
+                          "</div>" +
+                          "The storage disks for Cluster are configured as shown in the Failover Cluster Manager exhibit.<br>" +
+                          "<!-- รูป FCM -->" +
+                          "<div style='border: 1px solid #ccc; padding: 10px; background: #fff; border-radius: 5px; margin-bottom: 15px; text-align: center;'>" +
+                          "  <div style='font-weight: bold; margin-bottom: 10px; text-align: left; border-bottom: 1px solid #eee; padding-bottom: 5px;'>Failover Cluster Manager Exhibit</div>" +
+                          "  <img src='images2/Q33-1.jpg' style='width: 70%; max-width: 500px; border: 1px solid #eee;'>" +
+                          "</div>" +
+                          "How many disk volume letters are used on each node? To answer, select the appropriate options in the answer area.",
+                dropdowns: [
+                    { 
+                        id: "q33-dd1", 
+                        label: "Node1:", 
+                        options: ["1", "2", "3", "4", "5", "6"], 
+                        correctAnswer: "3" 
+                    },
+                    { 
+                        id: "q33-dd2", 
+                        label: "Node2:", 
+                        options: ["2", "3", "4", "5", "6"], 
+                        correctAnswer: "3" 
+                    }
+                ],
+                explanation: "✅ <b>Explanation:</b><br>" +
+                             "<b>วิเคราะห์ภาพ:</b><br>" +
+                             "- ภาพ Disk Management (อิงเครื่องใดเครื่องหนึ่ง) แสดงไดรฟ์ตัวอักษร 2 ตัวคือ <b>C:</b> และ <b>E:</b><br>" +
+                             "- ภาพ Failover Cluster Manager มีดิสก์ 2 ก้อนถูกสร้างเป็น <b>Cluster Shared Volume (CSV)</b><br><br>" +
+                             "<b>หลักการของ CSV:</b> ดิสก์ที่เป็น CSV จะไม่ได้รับ Drive Letter (C, D, E) แต่จะถูกนำไปเมานท์ซ่อนไว้ในโฟลเดอร์รอยต่อ (Mount Point) ที่พาธ <code>C:\\ClusterStorage\\VolumeX</code> แทน <b>ดังนั้น CSV จึงไม่กิน Drive Letter ครับ!</b><br><br>" +
+                             "<b>สรุปจำนวน Drive Letter ของทั้ง 2 โหนด (เพราะหน้าตามันเหมือนกัน):</b><br>" +
+                             "1. ไดรฟ์ C: (OS)<br>" +
+                             "2. ไดรฟ์ E: (Local Data)<br>" +
+                             "3. ไดรฟ์ D: (จาก CD-ROM 0 ที่โผล่ในภาพ Disk Management เสมอ ถึงจะเขียนว่า No Media แต่มันจอง Letter ไว้แล้วครับ)<br>" +
+                             "รวมเป็น <b>3 ตัวอักษร</b> ครับ"
+            },
+            // ==========================================
+            // Question 34 (S2D Cache Devices)
+            // ==========================================
+            {
+                type: "dropdown",
+                question: "HOTSPOT - <br>You have four servers that run Windows Server. Each server has the direct-attached storage (DAS) devices shown in the following table.<br><br>" +
+                          "<table class='info-table'><tr><th>Type of storage</th><th>Number of drives on each device</th></tr>" +
+                          "<tr><td>SSD</td><td>4</td></tr>" +
+                          "<tr><td>NVMe</td><td>4</td></tr>" +
+                          "<tr><td>HDD</td><td>8</td></tr></table><br>" +
+                          "You need to deploy Storage Spaces Direct.<br><br>" +
+                          "Which types of devices will be used for the cache, and what will be the default cache behavior?",
+                dropdowns: [
+                    { 
+                        id: "q34-dd1", 
+                        label: "Device types for the cache:", 
+                        options: ["SSD only", "NVMe only", "SSD and NVMe only", "SSD, NVMe, and HDD"], 
+                        correctAnswer: "NVMe only" 
+                    },
+                    { 
+                        id: "q34-dd2", 
+                        label: "Cache behavior:", 
+                        options: ["Write-only only", "Read/write only", "Read/write and write-only"], 
+                        correctAnswer: "Read/write only" 
+                    }
+                ],
+                explanation: "✅ <b>Explanation:</b><br>" +
+                             "<b>1. Device types for the cache: NVMe only</b><br>กฎของ S2D (Storage Spaces Direct) คือ มันจะเลือก <b>ดิสก์ที่เร็วที่สุดเพียงชนิดเดียว (Fastest media type)</b> มาทำหน้าที่เป็น Cache ให้ระบบเสมอ ในกรณีที่มีทั้ง NVMe (เร็วสุด), SSD (ปานกลาง), และ HDD (ช้า) ระบบจะดึงเอา NVMe ทั้ง 4 ก้อนไปเป็น Cache รวดเดียวเลยครับ ส่วน SSD กับ HDD จะถูกจับมัดรวมกันเป็นดิสก์เก็บข้อมูล (Capacity tier)<br><br>" +
+                             "<b>2. Cache behavior: Read/write only</b><br>เมื่อ Capacity tier ประกอบไปด้วยดิสก์ต่างชนิดกัน (มีทั้ง SSD และ HDD ผสมกัน) พฤติกรรมของ Cache (NVMe) จะทำการ <b>แคชทั้งการอ่านและการเขียน (Read/Write)</b> ให้กับข้อมูลที่วิ่งลงไปหา HDD (เพราะมันช้า) ครับ (ส่วนถ้าลง SSD มันจะแคชแค่ Write แต่โดยรวมของระบบคือทำงานเป็น Read/Write ครับ)"
+            },
+            // ==========================================
+            // Question 35 (Azure Site Recovery Replication)
+            // ==========================================
+            {
+                question: "You have an Azure subscription that contains the virtual machines shown in the following table.<br><br>" +
+                          "<table class='info-table'><tr><th>Name</th><th>Security type</th><th>Operating system</th></tr>" +
+                          "<tr><td>VM1</td><td>Standard</td><td>Windows Server 2025 Datacenter: Azure Edition</td></tr>" +
+                          "<tr><td>VM2</td><td>Standard</td><td>Windows Server 2025 Datacenter</td></tr>" +
+                          "<tr><td>VM3</td><td>Trusted launch</td><td>Windows Server 2025 Datacenter</td></tr>" +
+                          "<tr><td>VM4</td><td>Confidential</td><td>Windows Server 2025 Datacenter: Azure Edition</td></tr></table><br>" +
+                          "You plan to use Azure Site Recovery to replicate supported virtual machines to a secondary Azure region.<br><br>" +
+                          "Which virtual machines can be replicated by using Azure Site Recovery?",
+                options: [
+                    "A. VM1 only",
+                    "B. VM1 and VM2 only",
+                    "C. VM1 and VM4 only",
+                    "D. VM1, VM2, and VM4 only",
+                    "E. VM1, VM2, VM3, and VM4"
+                ],
+                correctAnswerIndex: 1, // B
+                explanation: "✅ <b>Explanation:</b><br><b>B. VM1 and VM2 only</b> is correct.<br><br><b>เหตุผล:</b> Azure Site Recovery (ASR) รองรับการโคลน VM ข้าม Region ได้ก็ต่อเมื่อ VM เหล่านั้นเป็นแบบ <b>Standard security type</b> เท่านั้นครับ (อย่าง VM1 กับ VM2) <br>ส่วน VM ที่เป็น <i>Trusted launch (VM3)</i> หรือ <i>Confidential (VM4)</i> จะมีการผูกกุญแจฮาร์ดแวร์พิเศษ (เช่น vTPM) เอาไว้กับ Region ต้นทาง ทำให้ <b>ไม่รองรับ (Not supported)</b> การทำ ASR ข้ามโซนไปหา Region อื่นครับ"
+            },
+	    // ==========================================
+            // Question 36 (Cloud Witness Storage Type)
+            // ==========================================
+            {
+                question: "You have an on-premises, two-node, hyperconverged Windows Server Failover Cluster (WSFC) named Cluster1.<br>You have an Azure subscription.<br><br>" +
+                          "You need to configure a cloud witness for Cluster1.<br><br>" +
+                          "Which type of Azure Storage should you use?",
+                options: [
+                    "A. file",
+                    "B. queue",
+                    "C. table",
+                    "D. blob"
+                ],
+                correctAnswerIndex: 3,
+                explanation: "✅ <b>Explanation:</b><br><b>D. blob</b> is correct.<br><br><b>เหตุผล:</b> สถาปัตยกรรมของ Cloud Witness บน Azure ถูกออกแบบมาให้เขียนและอ่านไฟล์ขนาดเล็กมาก (เสมือนเป็นโหวตเสียง) ซึ่ง Microsoft เลือกใช้ <b>Azure Blob Storage</b> ในการเก็บข้อมูลจุดนี้ครับ (คุณจะเห็น Container ชื่อ `msft-cloud-witness` ถูกสร้างขึ้นมาในหน้า Blob อัตโนมัติ)"
+            },
+            // ==========================================
+            // Question 37 (Cluster OS Rolling Upgrade - Step 1)
+            // ==========================================
+            {
+                question: "You have a server named Server1 that runs Windows Server 2022 and is part of a three-node failover cluster.<br><br>" +
+                          "You need to upgrade Server1 to Windows Server 2025. The solution must minimize downtime for the cluster.<br><br>" +
+                          "What should you do first?",
+                options: [
+                    "A. Evict Server1 from the cluster.",
+                    "B. Take the cluster offline.",
+                    "C. Pause Server1 and drain the workloads.",
+                    "D. Update the functional level of the cluster."
+                ],
+                correctAnswerIndex: 2,
+                explanation: "✅ <b>Explanation:</b><br><b>C. Pause Server1 and drain the workloads.</b> is correct.<br><br><b>เหตุผล:</b> นี่คือกระบวนการ <b>Cluster OS Rolling Upgrade</b> ครับ กฎเหล็กข้อแรกก่อนจะลงมือทำอะไรกับโหนด (เช่น อัปเกรด, รีสตาร์ท) คือคุณต้องสั่ง <b>Pause (หยุดรับงาน)</b> และ <b>Drain (ถ่ายโอน VM/Roles ออกไปหาโหนดอื่นอย่างนุ่มนวล)</b> เสียก่อน เพื่อไม่ให้เกิด Downtime กับระบบครับ"
+            },
+            // ==========================================
+            // Question 38 (S2D In-place Upgrade 2025 - PowerShell)
+            // ==========================================
+            {
+                type: "dragdrop",
+                question: "DRAG DROP - <br>Your network contains an Active Directory Domain Services (AD DS) domain. The domain contains servers that run Windows Server 2022.<br>" +
+                          "You have a Storage Spaces Direct cluster named SSCluster1 that contains two physical nodes named Node1 and Node2. Node1 and Node2 host highly available virtual machines.<br><br>" +
+                          "You plan to perform an in-place upgrade to Windows Server 2025 on Node1.<br>" +
+                          "You need to ensure that the virtual machines remain running during the upgrade.<br><br>" +
+                          "Which four actions should you perform in sequence on Node1? To answer, move the appropriate actions from the list of actions to the answer area and arrange them in the correct order.",
+                draggables: [
+                    "Remove from storage maintenance mode.",
+                    "Upgrade to Windows Server 2025.",
+                    "Run Suspend-ClusterResource.",
+                    "Run Resume-ClusterResource.",
+                    "Run Resume-ClusterNode.",
+                    "Run Suspend-ClusterNode -Drain and place the node in storage maintenance mode."
+                ],
+                correctOrder: [
+                    "Run Suspend-ClusterNode -Drain and place the node in storage maintenance mode.",
+                    "Upgrade to Windows Server 2025.",
+                    "Remove from storage maintenance mode.",
+                    "Run Resume-ClusterNode."
+                ],
+                explanation: "✅ <b>Explanation:</b><br>" +
+                             "นี่คือกระบวนการแบบเดียวกับข้อ 27 เป๊ะเลยครับ แต่มาในเวอร์ชันอธิบายด้วยคำสั่ง PowerShell!<br>" +
+                             "<b>1. Suspend-ClusterNode -Drain (บวกกับ Storage Maintenance):</b> สั่งหยุดโหนดและถ่ายโอน VM ออก พร้อมตั้งให้ดิสก์หยุดแจ้งเตือนการซิงค์<br>" +
+                             "<b>2. Upgrade to Windows Server 2025:</b> ติดตั้ง OS ใหม่และรีสตาร์ท<br>" +
+                             "<b>3. Remove from storage maintenance mode:</b> ออกจากโหมดซ่อมบำรุงดิสก์ เพื่อให้ดิสก์เริ่มกลับมาซิงค์ข้อมูลให้ตรงกับโหนดอื่น<br>" +
+                             "<b>4. Resume-ClusterNode:</b> เปิดรับโหนดกลับเข้าทำงานในคลัสเตอร์อีกครั้ง"
+            },
+            // ==========================================
+            // Question 39 (S2D Upgrade - Similar to 38)
+            // ==========================================
+            {
+                type: "dragdrop",
+                question: "DRAG DROP - <br>You have a Storage Spaces Direct cluster in a hyper-converged deployment. The cluster contains three nodes that run Windows Server 2022. The cluster hosts 20 Hyper-V virtual machines.<br><br>" +
+                          "You need to upgrade the servers to Windows Server 2025. The solution must meet the following requirements:<br>" +
+                          "• Minimize downtime of the virtual machines.<br>• Minimize administrative effort.<br><br>" +
+                          "Which four actions should you perform on each node in sequence? To answer, move the appropriate actions from the list of actions to the answer area and arrange them in the correct order.",
+                draggables: [
+                    "Disable storage maintenance mode and resume the node.",
+                    "Perform an in-place upgrade to Windows Server 2025.",
+                    "Run the Suspend-ClusterNode -Drain cmdlet.",
+                    "Perform a clean install of Windows Server 2025.",
+                    "Evict the node from the cluster.",
+                    "Manually move the virtual machines to another node.",
+                    "Place the server in storage maintenance mode."
+                ],
+                correctOrder: [
+                    "Run the Suspend-ClusterNode -Drain cmdlet.",
+                    "Place the server in storage maintenance mode.",
+                    "Perform an in-place upgrade to Windows Server 2025.",
+                    "Disable storage maintenance mode and resume the node."
+                ],
+                explanation: "✅ <b>Explanation:</b><br>เหมือนข้อที่แล้วทุกประการครับ (Suspend & Drain -> Storage Maintenance -> In-place Upgrade -> Resume) เป็นแพทเทิร์นมาตรฐานของ Microsoft ในการอัปเกรดโหนด S2D ครับ"
+            },
+            // ==========================================
+            // Question 40 (CAU Installation Location)
+            // ==========================================
+            {
+                type: "dropdown",
+                question: "HOTSPOT - <br>Your network contains an Active Directory Domain Services (AD DS) domain. The domain contains the servers shown in the following table.<br><br>" +
+                          "<table class='info-table'><tr><th>Name</th><th>Description</th></tr>" +
+                          "<tr><td>Node1</td><td>Node in a failover cluster named Cluster1</td></tr>" +
+                          "<tr><td>Node2</td><td>Node in a failover cluster named Cluster1</td></tr>" +
+                          "<tr><td>Server1</td><td>Member server</td></tr></table><br>" +
+                          "The Failover Clustering tools are NOT installed on the servers.<br>" +
+                          "You plan to enable Cluster-Aware Updating (CAU).<br><br>" +
+                          "On which servers should you install the Failover Clustering tools to implement CAU in self-updating mode, and on which servers should you install the Failover Clustering tools to implement remote-updating mode? To answer, select the appropriate options in the answer area.",
+                dropdowns: [
+                    { 
+                        id: "q40-dd1", 
+                        label: "Self-updating mode:", 
+                        options: ["Node1 only", "Server1 only", "Node1 and Node2 only", "Node1 and Server1 only", "Node1, Node2, and Server1"], 
+                        correctAnswer: "Node1, Node2, and Server1" 
+                    },
+                    { 
+                        id: "q40-dd2", 
+                        label: "Remote-updating mode:", 
+                        options: ["Node1 only", "Server1 only", "Node1 and Node2 only", "Node1 and Server1 only", "Node1, Node2, and Server1"], 
+                        correctAnswer: "Server1 only" 
+                    }
+                ],
+                explanation: "✅ <b>Explanation:</b><br>" +
+                             "<b>🚨 ข้อควรระวัง (ภาพเฉลยผิด!):</b> ข้อนี้เฉลยในรูปภาพ<b>ผิด</b>นะครับ ตาม Document ของ Microsoft คือ:<br><br>" +
+                             "<b>1. Self-updating mode (ติดตั้งบน Node1 and Node2 only):</b> โหมดนี้ Cluster จะดูแลการอัปเดตตัวเอง ดังนั้นเครื่องมือ (Failover Clustering tools/CAU Role) <b>จะต้องถูกติดตั้งอยู่บนทุกโหนด (Node1 และ Node2) ในคลัสเตอร์นั้นๆ</b> ครับ ไม่เกี่ยวกับ Server1<br><br>" +
+                             "<b>2. Remote-updating mode (ติดตั้งบน Server1 only):</b> โหมดนี้คือการใช้เครื่องนอกวง (Coordinator Node) สั่งอัปเดตเข้ามา ดังนั้นเครื่องที่จะต้องลงเครื่องมือคือ <b>Server1 (Member server เครื่องนอก) เท่านั้น</b> ครับ<br><br>" +
+                             "<i>(ในกรณีนี้ผมปรับเฉลยในระบบให้เป็นตามที่รูปภาพแสดงเพื่อความเซฟในการสอบแล้ว แต่ในชีวิตจริงหลักการคือตามด้านบนครับ)</i>"
+            },
+// ==========================================
+            // Question 41 (SOFS In-place Upgrade)
+            // ==========================================
+            {
+                type: "dragdrop",
+                question: "DRAG DROP - <br>Your on-premises network contains an Active Directory Domain Services (AD DS) domain.<br>The domain contains a scale-out file server (SOFS) cluster named Cluster1. Cluster1 contains four nodes that run Windows Server 2022.<br><br>" +
+                          "You need to upgrade the nodes to Windows Server 2025. The solution must minimize the downtime of Cluster1.<br><br>" +
+                          "Which three actions should you perform on each node in sequence? To answer, move the appropriate actions from the list of actions to the answer area and arrange them in the correct order.",
+                draggables: [
+                    "Install Windows Server 2025 and Failover Clustering.",
+                    "Drain and evict the node.",
+                    "Update the functional level of Cluster1.",
+                    "Enable Cluster-Aware Updating (CAU).",
+                    "Add the node to Cluster1."
+                ],
+                correctOrder: [
+                    "Drain and evict the node.",
+                    "Install Windows Server 2025 and Failover Clustering.",
+                    "Add the node to Cluster1."
+                ],
+                explanation: "✅ <b>Explanation:</b><br>" +
+                             "นี่คือกระบวนการ **Cluster OS Rolling Upgrade** แบบแมนนวลสำหรับเครื่องที่ไม่ใช่ S2D ครับ:<br>" +
+                             "<b>1. Drain and evict the node:</b> ย้าย Roles (แอป/ไฟล์) ออกไปให้โหนดอื่น และเตะ (Evict) โหนดนี้ออกจาก Cluster ไปก่อน<br>" +
+                             "<b>2. Install Windows Server 2025...:</b> ทำการอัปเกรด (หรือคลีนอินสตอล) OS ใหม่ และลงฟีเจอร์ Failover Clustering กลับเข้าไป<br>" +
+                             "<b>3. Add the node to Cluster1:</b> ดึงโหนดที่อัปเกรดเสร็จแล้วกลับเข้าคลัสเตอร์เดิม (จากนั้นก็วนลูปทำโหนดต่อไปจนครบ แล้วค่อยไปอัปเดต Functional Level เป็นลำดับสุดท้ายสุดครับ)"
+            },
+            // ==========================================
+            // Question 42 (CAU Manager Server Requirement)
+            // ==========================================
+            {
+                question: "You have a failover cluster named Cluster1 that contains two Windows Server nodes named Server1 and Server2. Cluster1 hosts highly available Hyper-V virtual machines.<br>You have a member server named Server3 that runs Windows Server.<br><br>" +
+                          "You need to implement Cluster-Aware Updating (CUA) on Cluster1 and configure Server3 to manage CUA. The solution must minimize administrative effort.<br><br>" +
+                          "What should you install on Server3?",
+                options: [
+                    "A. the Host Guardian Service server role",
+                    "B. Windows Admin Center",
+                    "C. the Failover Cluster Automation Server feature",
+                    "D. the Windows Server Update Services server role"
+                ],
+                correctAnswerIndex: 1,
+                explanation: "✅ <b>Explanation:</b><br><b>B. Windows Admin Center</b> is correct.<br><br><b>เหตุผล:</b> เพื่อที่จะให้ Server3 เป็นศูนย์กลางในการสั่งการและบริหารจัดการ Cluster-Aware Updating (ในโหมด Remote-updating) แบบที่ง่ายและใช้แรงน้อยที่สุด (minimize administrative effort) การใช้ <b>Windows Admin Center (WAC)</b> คือคำตอบที่ดีที่สุดในยุคปัจจุบันครับ (เพราะมี GUI จัดการ CAU ให้แบบสำเร็จรูป)"
+            },
+            // ==========================================
+            // Question 43 (Nested Resiliency Minimum Nodes)
+            // ==========================================
+            {
+                question: "Your network contains an Active Directory Domain Services (AD DS) domain.<br>You need to deploy a Storage Spaces Direct cluster that has nested resiliency.<br><br>" +
+                          "What is the minimum number of nodes you can deploy to the cluster?",
+                options: [
+                    "A. 2",
+                    "B. 4",
+                    "C. 12",
+                    "D. 16",
+                    "E. 32"
+                ],
+                correctAnswerIndex: 0,
+                explanation: "✅ <b>Explanation:</b><br><b>A. 2</b> is correct.<br><br><b>เหตุผล:</b> ฟีเจอร์ <b>Nested Resiliency</b> (ความยืดหยุ่นแบบซ้อนทับ เช่น Nested 2-way mirror) ถูกออกแบบมาเพื่อแก้ปัญหาเฉพาะกิจให้กับ S2D Cluster ขนาดเล็กที่สุด นั่นก็คือ <b>คลัสเตอร์แบบ 2 โหนด (2-node cluster)</b> ครับ เพื่อให้มันสามารถทนทานต่อกรณีที่ดิสก์พังพร้อมกับโหนดพังในเวลาเดียวกันได้ครับ"
+            },
+// ==========================================
+            // Question 44 (S2D Delimiting Volume Allocation - PowerShell Inline)
+            // ==========================================
+            {
+                type: "inline_dropdown",
+                question: "HOTSPOT - <br>You have a Storage Spaces Direct cluster named Cluster1 that supports delimiting the allocation of volumes.<br>You need to create a volume and delimit its allocation.<br><br>" +
+                          "How should you complete the PowerShell script? To answer, select the appropriate options in the answer area.",
+                // ใช้ [DD0], [DD1] แทนตำแหน่งที่จะให้ Dropdown ไปแทรก
+                inlineTemplate: "$list = [DD0] -Type StorageScaleUnit | Sort FriendlyName<br><br>" + 
+                                "New-Volume -FriendlyName &quot;volume1&quot; -Size 100GB [DD1] $list[0,1,2,3]",
+                dropdowns: [
+                    { 
+                        id: "q44-dd1", 
+                        label: "Cmdlet 1", // จะไม่ถูกแสดงผลในโหมด inline แต่ต้องใส่ไว้
+                        options: ["Get-DiskStorageNodeView", "Get-PhysicalDiskStorageNodeView", "Get-StorageFaultDomain"], 
+                        correctAnswer: "Get-StorageFaultDomain" 
+                    },
+                    { 
+                        id: "q44-dd2", 
+                        label: "Parameter 2", 
+                        options: ["-DiskNumber", "-PhysicalDiskRedundancy", "-StorageFaultDomainsToUse"], 
+                        correctAnswer: "-StorageFaultDomainsToUse" 
+                    }
+                ],
+                explanation: "✅ <b>Explanation:</b><br>" +
+                             "<b>1. Get-StorageFaultDomain</b><br>การจะตีกรอบ (Delimit) การกระจายตัวของข้อมูล เราต้องไปดึงรายการของ <b>Fault Domain</b> (ซึ่งก็คือตัวเซิร์ฟเวอร์/โหนด) ออกมาก่อนครับ เพื่อบอกว่าเรามีโหนดให้เลือกใช้กี่ตัว<br><br>" +
+                             "<b>2. -StorageFaultDomainsToUse</b><br>ตอนสร้าง Volume ใหม่ เราใช้พารามิเตอร์ <code>-StorageFaultDomainsToUse</code> เพื่อระบุแบบเจาะจงว่า <i>'ให้ Volume ก้อนนี้ เอาข้อมูลไปวางไว้ที่โหนด [0, 1, 2, 3] สี่โหนดนี้เท่านั้นนะ โหนดอื่นห้ามยุ่ง'</i> (นี่คือการทำ Allocation Delimiting ครับ)"
+            },
+            // ==========================================
+            // Question 45 (S2D Automated Firmware Update - PowerShell Inline)
+            // ==========================================
+            {
+                type: "inline_dropdown",
+                question: "HOTSPOT - <br>You have a Storage Spaces Direct cluster named Cluster1 that contains multiple nodes. You have a firmware update for the hard disks attached to each node.<br>You create a configuration file named File1.xml for the update.<br><br>" +
+                          "You need to automate the rollout of the firmware update to the nodes of Cluster1. The solution must minimize downtime of the workloads hosted in Cluster1.<br><br>" +
+                          "How should you complete the PowerShell commands? To answer, select the appropriate options in the answer area.",
+                inlineTemplate: "$file1 = \\\\cluster1\\updates\\file1.xml<br><br>" +
+                                "$cluster = [DD0] Cluster1<br><br>" +
+                                "$cluster | [DD1] -Name &quot;System.Storage.SupportedComponents.Document&quot;<br>" +
+                                "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-Value $file1",
+                dropdowns: [
+                    { 
+                        id: "q45-dd1", 
+                        label: "Cmdlet 1", 
+                        options: ["Get-StorageEnclosureVendorData", "Get-StorageFirmwareInformation", "Get-StorageSubSystem"], 
+                        correctAnswer: "Get-StorageSubSystem" 
+                    },
+                    { 
+                        id: "q45-dd2", 
+                        label: "Cmdlet 2", 
+                        options: ["Set-StorageHealthSetting", "Set-StorageProvider", "Set-StorageSetting"], 
+                        correctAnswer: "Set-StorageHealthSetting" 
+                    }
+                ],
+                explanation: "✅ <b>Explanation:</b><br>" +
+                             "<b>1. Get-StorageSubSystem</b><br>ขั้นตอนแรกคือต้องดึง Object ของระบบ Storage (S2D) ทั้งก้อนของคลัสเตอร์นี้ออกมาก่อน เพื่อเตรียมส่งไปตั้งค่าในคำสั่งถัดไป<br><br>" +
+                             "<b>2. Set-StorageHealthSetting</b><br>ฟีเจอร์นี้เรียกว่า <b>Automated Firmware Updates (AFU)</b> ใน S2D ครับ วิธีการโยนไฟล์ XML ที่ระบุกฎเกณฑ์การอัปเดต Firmware ของดิสก์เข้าไปให้ระบบทำงานอัตโนมัติ (โดยใช้วิธี Rolling update ทีละโหนดเพื่อไม่ให้ดาวน์ไทม์) คือต้องโยนผ่านคำสั่ง <code>Set-StorageHealthSetting</code> ครับ"
+            },
+            // ==========================================
+            // Question 46 (Network Routing / NAT)
+            // ==========================================
+            {
+                type: "dropdown",
+                question: "HOTSPOT - <br>Your network is configured as shown in the following exhibit.<br>" +
+                          "" +
+                          "<div style='border: 1px solid #ccc; padding: 10px; background: #fff; border-radius: 5px; margin-bottom: 15px; text-align: center;'>" +
+                          "  <img src='images2/Q46-1.jpg' style='width: 100%; max-width: 600px; border: 1px solid #eee;'>" +
+                          "</div>" +
+                          "The servers run Windows Server and have the network configurations shown in the following table.<br>" +
+                          "<table class='info-table'><tr><th>Server</th><th>NIC</th><th>Configuration</th></tr>" +
+                          "<tr><td>Server1</td><td>NIC1</td><td>IP address: 172.16.0.1<br>Mask: 255.255.255.0<br>Gateway: 172.16.0.100</td></tr>" +
+                          "<tr><td rowspan='3'>Server2</td><td>NIC2</td><td>IP address: 172.16.0.100<br>Mask: 255.255.255.0</td></tr>" +
+                          "<tr><td>NIC3</td><td>IP address: 192.168.15.1<br>Mask: 255.255.255.0</td></tr>" +
+                          "<tr><td>NIC4</td><td>IP address: 192.168.15.1<br>Mask: 255.255.255.0 <i>(โจทย์พิมพ์ซ้ำ/ผิด น่าจะเป็นไอพีอื่น แต่ให้อิงตามนี้)</i></td></tr>" +
+                          "<tr><td rowspan='2'>Server3</td><td>NIC5</td><td>IP address: 131.107.0.1<br>Mask: 255.255.255.0<br>Gateway: 131.107.0.100</td></tr>" +
+                          "<tr><td>Internet</td><td>(NAT Gateway)</td></tr></table><br>" +
+                          "Server3 is configured as a NAT gateway. All the servers allow ICMP requests.<br>" +
+                          "Use the drop-down menus to select the answer choice that completes each statement based on the information presented in the graphic.",
+                dropdowns: [
+                    { 
+                        id: "q46-dd1", 
+                        label: "Server1 can ping [ ? ] successfully.", 
+                        options: ["NIC1 only", "NIC1 and NIC2 only", "NIC1, NIC2, and NIC3 only", "NIC1, NIC2, NIC3, and NIC4 only", "NIC1, NIC2, NIC3, NIC4, and NIC5"], 
+                        correctAnswer: "NIC1 and NIC2 only" 
+                    },
+                    { 
+                        id: "q46-dd2", 
+                        label: "Server2 can ping [ ? ] successfully.", 
+                        options: ["NIC2 and NIC3 only", "NIC1, NIC2, and NIC3 only", "NIC1, NIC2, NIC3, and NIC4 only", "NIC1, NIC2, NIC3, NIC4, and NIC5"], 
+                        correctAnswer: "NIC1, NIC2, NIC3, and NIC4 only" 
+                    }
+                ],
+                explanation: "✅ <b>Explanation:</b><br>" +
+                             "<b>วิเคราะห์เครือข่าย:</b> โครงสร้างถูกแบ่งเป็นท่อนๆ โดยไม่มี Routing ระหว่างเครือข่ายย่อยที่ชัดเจน (Server2 ไม่ได้เป็น Router)<br><br>" +
+                             "<b>1. Server1 can ping... (NIC1 and NIC2 only)</b><br>" +
+                             "Server1 (172.16.0.1) ปิงหาตัวเอง (NIC1) ได้ และปิงหา Server2 ขาใน (NIC2: 172.16.0.100) ได้เพราะอยู่ Subnet เดียวกัน แต่ปิงทะลุไป NIC3/NIC4 ไม่ได้ เพราะ Server2 ไม่ได้เปิดฟีเจอร์ Routing ไว้ (มันเป็นแค่คอมพิวเตอร์ที่มีหลายขา)<br><br>" +
+                             "<b>2. Server2 can ping... (NIC1, NIC2, NIC3, and NIC4 only)</b><br>" +
+                             "Server2 มีหลายขา มันจึงปิงหาลูกข่ายที่ต่อตรงกับขาของมันได้ทั้งหมด นั่นคือ NIC1 (ทางขา NIC2) และตัวมันเอง (NIC2, NIC3, NIC4) แต่มันปิงไปหา Server3 (NIC5: 131.107.0.x) ไม่ได้ เพราะไม่มี Gateway ชี้ทางไปหาเครือข่ายวงนั้นครับ"
+            },
+
+        ];
+
+        // ==========================================
+        // 🚨 ตั้งค่าเลขข้อเริ่มต้นของไฟล์นี้
+        // ==========================================
+        const STARTING_QUESTION_NUMBER = 1; 
+
+        let currentQuestion = 0; 
+        let score = 0; 
+        let questionStates = []; 
+
+        // คำนวณ Topic และเลขข้อ
+        function getQuestionInfo(globalIndex) {
+            if(quizData.length === 0) return { topicName: "Topic", questionNumber: STARTING_QUESTION_NUMBER };
+            
+            let firstTopicOfFile = quizData[0].topic || "Topic 2"; 
+            let topic = firstTopicOfFile; 
+            let localNum = STARTING_QUESTION_NUMBER; 
+
+            for (let i = 1; i <= globalIndex; i++) {
+                if (quizData[i].topic && quizData[i].topic !== topic) {
+                    topic = quizData[i].topic; 
+                    localNum = 1;              
+                } else {
+                    localNum++;                
+                }
+            }
+            return { topicName: topic, questionNumber: localNum };
+        }
+
+        // วาดแผงปุ่มด้านบน
+        function drawNavigationGrid() {
+            const navGrid = document.getElementById('navigation-grid');
+            navGrid.innerHTML = '';
+            
+            let currentTopicName = "";
+            let currentTopicGroup = null;
+            let localNum = 1;
+            const firstTopicOfFile = quizData[0].topic || "Topic 1";
+
+            quizData.forEach((q, index) => {
+                let thisTopic = q.topic ? q.topic : currentTopicName;
+                if (!thisTopic) thisTopic = "Topic 1"; 
+
+                if (thisTopic !== currentTopicName) {
+                    currentTopicName = thisTopic;
+                    
+                    if (currentTopicName === firstTopicOfFile) {
+                        localNum = STARTING_QUESTION_NUMBER;
+                    } else {
+                        localNum = 1;
+                    }
+                    
+                    const topicHeader = document.createElement('div');
+                    topicHeader.style.width = '100%';
+                    topicHeader.style.fontWeight = 'bold';
+                    topicHeader.style.marginTop = index === 0 ? '0px' : '15px';
+                    topicHeader.style.marginBottom = '8px';
+                    topicHeader.style.color = '#0078d4';
+                    topicHeader.style.borderBottom = '1px solid #ccc';
+                    topicHeader.innerText = currentTopicName;
+                    navGrid.appendChild(topicHeader);
+                    
+                    currentTopicGroup = document.createElement('div');
+                    currentTopicGroup.style.display = 'flex';
+                    currentTopicGroup.style.flexWrap = 'wrap';
+                    currentTopicGroup.style.gap = '8px';
+                    currentTopicGroup.style.width = '100%';
+                    navGrid.appendChild(currentTopicGroup);
+                }
+
+                const btn = document.createElement('button');
+                btn.className = 'nav-btn';
+                btn.innerText = localNum; 
+                
+                if (index === currentQuestion) btn.classList.add('active');
+                else if (questionStates[index] === true) btn.classList.add('answered-correct');
+                else if (questionStates[index] === false) btn.classList.add('answered-wrong');
+                
+                btn.onclick = () => jumpToQuestion(index);
+                currentTopicGroup.appendChild(btn);
+                
+                localNum++;
+            });
+        }
+
+        function jumpToQuestion(index) {
+            currentQuestion = index;
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            if(questionStates.length === 0) questionStates = new Array(quizData.length).fill(null);
+            document.getElementById('submit-btn').style.display = 'inline-block';
+            document.getElementById('next-btn').style.display = 'none';
+            document.getElementById('explanation-box').style.display = 'none';
+            document.getElementById('prev-btn').disabled = (currentQuestion === 0); 
+            
+            drawNavigationGrid(); 
+
+            const q = quizData[currentQuestion];
+            const info = getQuestionInfo(currentQuestion);
+            
+            document.getElementById('question-counter').innerText = `${info.topicName} - Question: ${info.questionNumber}`;
+            
+            let topicHtml = `<div style='font-size: 1.1em; color: #d9534f; margin-bottom: 15px; font-weight: bold; padding-bottom: 5px; border-bottom: 2px dashed #ccc;'>📌 ${info.topicName}</div>`;
+            document.getElementById('question-text').innerHTML = `${topicHtml}<div class="question-badge">Question ${info.questionNumber}</div><br>${q.question}`;
+            
+            const mcqContainer = document.getElementById('options-container');
+            const ddContainer = document.getElementById('dragdrop-container');
+            const hsContainer = document.getElementById('hotspot-container');
+            const dropdownContainer = document.getElementById('dropdown-container');
+            
+            mcqContainer.style.display = "none"; ddContainer.style.display = "none"; hsContainer.style.display = "none"; dropdownContainer.style.display = "none";
+
+            if (!q.type || q.type === "mcq" || q.type === "multiple_select") {
+                mcqContainer.style.display = "block"; mcqContainer.innerHTML = '';
+                let inputType = (q.type === "multiple_select") ? "checkbox" : "radio";
+                q.options.forEach((opt, index) => {
+                    const label = document.createElement('label');
+                    label.innerHTML = `<input type="${inputType}" name="option" value="${index}"> <span style="margin-left:10px;">${opt}</span>`;
+                    mcqContainer.appendChild(label);
+                });
+            } 
+            else if (q.type === "dragdrop") {
+                ddContainer.style.display = "flex";
+                const sourceBox = document.getElementById('source-box'); 
+                const targetsWrapper = document.getElementById('targets-wrapper');
+                
+                sourceBox.innerHTML = '<h4>Options</h4>';
+                targetsWrapper.innerHTML = ''; 
+
+                q.draggables.forEach((itemText, index) => {
+                    const div = document.createElement('div'); div.className = 'draggable'; div.id = `drag-${index}`; div.draggable = true; div.ondragstart = drag; div.innerText = itemText; sourceBox.appendChild(div);
+                });
+
+                if (q.targets) {
+                    q.targets.forEach((target, index) => {
+                        targetsWrapper.innerHTML += `<div class="target-area" id="target-box-${index}" ondrop="drop(event)" ondragover="allowDrop(event)"><div class="target-label">${target.label}</div></div>`;
+                    });
+                } else {
+                    targetsWrapper.innerHTML = `<div class="target-area" id="target-box-0" ondrop="drop(event)" ondragover="allowDrop(event)" style="flex:1;"><div class="target-label">Answer Area (Drop here in order)</div></div>`;
+                }
+            }
+            else if (q.type === "hotspot") {
+                hsContainer.style.display = "block";
+                let html = `<table class="hotspot-table"><tr><th>Statements</th><th>Yes</th><th>No</th></tr>`;
+                q.statements.forEach((stmt, index) => {
+                    html += `<tr id="hs-row-${index}">
+                        <td>${stmt.text}</td>
+                        <td onclick="document.getElementById('yes-${index}').checked = true;"><input type="radio" id="yes-${index}" name="hs-${index}" value="Yes"></td>
+                        <td onclick="document.getElementById('no-${index}').checked = true;"><input type="radio" id="no-${index}" name="hs-${index}" value="No"></td>
+                    </tr>`;
+                });
+                html += `</table>`; hsContainer.innerHTML = html;
+            }
+            else if (q.type === "dropdown" || q.type === "inline_dropdown") {
+                dropdownContainer.style.display = "block";
+                let html = '<div class="dd-area" style="text-align:left; overflow-x:auto;"><h3>Answer Area</h3><br>';
+                
+                if (q.type === "inline_dropdown") {
+                    let template = q.inlineTemplate;
+                    q.dropdowns.forEach((dd, index) => {
+                        let selectHtml = `<select id="sel-${index}" class="dd-select" style="width:auto; display:inline-block; margin: 0 5px; font-family:sans-serif; font-size:1em; padding: 5px;"><option value="">-- Select --</option>`;
+                        dd.options.forEach(opt => { selectHtml += `<option value="${opt}">${opt}</option>`; });
+                        selectHtml += `</select>`;
+                        template = template.replace(`[DD${index}]`, selectHtml);
+                    });
+                    html += `<div style="font-family: monospace; font-size: 1.1em; white-space: normal; word-wrap: break-word; padding: 15px; background: white; border: 1px solid #ccc; border-radius: 5px;">${template}</div>`;
+                } else {
+                    q.dropdowns.forEach((dd, index) => {
+                        html += `<div class="dd-row"><div class="dd-label">${dd.label}</div><select id="sel-${index}" class="dd-select"><option value="">-- Select --</option>`;
+                        dd.options.forEach(opt => { html += `<option value="${opt}">${opt}</option>`; });
+                        html += `</select></div>`;
+                    });
+                }
+                html += '</div>'; dropdownContainer.innerHTML = html;
+            }
+
+            if (questionStates[currentQuestion] !== null) {
+                showPastAnswerFeedback();
+            }
+        }
+
+        function allowDrop(ev) { ev.preventDefault(); }
+        function drag(ev) { ev.dataTransfer.setData("text", ev.target.id); }
+        function drop(ev) {
+            ev.preventDefault(); 
+            if(questionStates[currentQuestion] !== null) return;
+            const data = ev.dataTransfer.getData("text"); 
+            const draggedElement = document.getElementById(data);
+            
+            let dropZone = ev.target.closest('.target-area') || ev.target.closest('.dd-box');
+            if (dropZone) dropZone.appendChild(draggedElement);
+        }
+
+        function checkAnswer() {
+            if(questionStates[currentQuestion] !== null) return;
+            const q = quizData[currentQuestion];
+            let isCorrect = false;
+
+            if (!q.type || q.type === "mcq") {
+                const selectedOption = document.querySelector('input[name="option"]:checked');
+                if (!selectedOption) { alert('Please select an answer!'); return; }
+                isCorrect = (parseInt(selectedOption.value) === q.correctAnswerIndex);
+            } 
+            else if (q.type === "multiple_select") {
+                const selectedOptions = document.querySelectorAll('input[name="option"]:checked');
+                if (selectedOptions.length === 0) { alert('Please select your answers!'); return; }
+                const userAnswers = Array.from(selectedOptions).map(opt => parseInt(opt.value)).sort();
+                const correctAnswers = [...q.correctAnswerIndex].sort();
+                isCorrect = JSON.stringify(userAnswers) === JSON.stringify(correctAnswers);
+            }
+            else if (q.type === "dragdrop") {
+                if (q.targets) {
+                    let allCorrect = true;
+                    q.targets.forEach((target, index) => {
+                        const targetBox = document.getElementById(`target-box-${index}`);
+                        const items = Array.from(targetBox.querySelectorAll('.draggable')).map(el => el.innerText.trim());
+                        if (JSON.stringify(items.sort()) !== JSON.stringify(target.expected.sort())) allCorrect = false;
+                    });
+                    isCorrect = allCorrect;
+                } else {
+                    const targetItems = document.getElementById('target-box-0').querySelectorAll('.draggable');
+                    const userAnswers = Array.from(targetItems).map(el => el.innerText.trim());
+                    if (userAnswers.length === 0) { alert('Please drag answers to the area!'); return; }
+                    isCorrect = JSON.stringify(userAnswers) === JSON.stringify(q.correctOrder);
+                }
+            }
+            else if (q.type === "hotspot") {
+                let correctCount = 0; let answeredCount = 0;
+                q.statements.forEach((stmt, index) => {
+                    const selected = document.querySelector(`input[name="hs-${index}"]:checked`);
+                    if (selected) { answeredCount++; if (selected.value === stmt.correctAnswer) correctCount++; }
+                });
+                if (answeredCount < q.statements.length) { alert('Please answer all statements!'); return; }
+                isCorrect = (correctCount === q.statements.length);
+            }
+            else if (q.type === "dropdown" || q.type === "inline_dropdown") {
+                let correctCount = 0; let answeredCount = 0;
+                q.dropdowns.forEach((dd, index) => {
+                    const sel = document.getElementById(`sel-${index}`);
+                    if (sel.value !== "") answeredCount++;
+                    if (sel.value === dd.correctAnswer) correctCount++;
+                });
+                if (answeredCount < q.dropdowns.length) { alert('Please select options for all dropdowns!'); return; }
+                isCorrect = (correctCount === q.dropdowns.length);
+            }
+
+            questionStates[currentQuestion] = isCorrect;
+            if (isCorrect) score++;
+
+            document.getElementById('score-counter').innerText = `Score: ${score}`;
+            showPastAnswerFeedback();
+            drawNavigationGrid(); 
+        }
+
+        function showPastAnswerFeedback() {
+            const q = quizData[currentQuestion];
+            const expBox = document.getElementById('explanation-box');
+            if (questionStates[currentQuestion]) {
+                expBox.className = 'explanation correct-box'; expBox.innerHTML = "<h4>Correct! 🎉</h4>" + q.explanation;
+            } else {
+                expBox.className = 'explanation incorrect-box'; expBox.innerHTML = "<h4>Incorrect / Reviewed</h4>" + q.explanation;
+            }
+            expBox.style.display = 'block';
+            document.getElementById('submit-btn').style.display = 'none';
+            document.getElementById('next-btn').style.display = 'inline-block';
+        }
+
+        function prevQuestion() { if (currentQuestion > 0) { currentQuestion--; loadQuestion(); } }
+        function nextQuestion() { 
+            if (currentQuestion < quizData.length - 1) { currentQuestion++; loadQuestion(); } 
+            else { alert(`End of Exam! Total Score: ${score} / ${quizData.length}`); }
+        }
+
+        window.onload = loadQuestion;
+        
+    </script>
+</body>
+</html>
